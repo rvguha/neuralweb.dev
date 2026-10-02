@@ -24,8 +24,8 @@ const apiBase = API[scope] || "";
 const askEndpoint = new URL(pageParams.get("ask") || `${apiBase}/ask`, location.href);
 const collection = COLLECTIONS[scope] || {};
 
-import { Threadstore } from "./threadstore.js?v=19";
-import { renderCard } from "./cards.js?v=19";
+import { Threadstore } from "./threadstore.js?v=20";
+import { renderCard } from "./cards.js?v=20";
 
 // A conversation is the unit now, not a page load. `store` persists it,
 // `thread` is the one being added to, and `turns` mirrors it in memory so a
@@ -280,7 +280,6 @@ async function remember(record, node) {
   record.seq = stored.lastSeq;
   node?.setSeq(record.seq);
   $("chat-title").textContent = thread.title;
-  $("delete-chat").hidden = false;
   await refreshConversations();
 }
 
@@ -300,23 +299,11 @@ async function forgetTurn(node, seq) {
   await refreshConversations();
 }
 
-// Removing the conversation being read, rather than hunting for its row.
-async function forgetThread() {
-  if (!thread) { newChat(); return; }
-  if (!confirm(`Delete "${thread.title}" and all ${thread.turnCount} of its turns?`)) return;
-  if (store?.available) await store.remove(thread.id);
-  newChat();
-  await refreshConversations();
-}
-
-$("delete-chat").addEventListener("click", forgetThread);
-
 function newChat() {
   thread = null;
   turns = [];
   $("thread").replaceChildren();
   $("chat-title").textContent = "New chat";
-  $("delete-chat").hidden = true;
   $("intro").hidden = false;
   $("samples").open = true;
   hideUsage();
@@ -327,16 +314,13 @@ function newChat() {
 
 $("new-chat").addEventListener("click", newChat);
 $("new-chat-top").addEventListener("click", newChat);
-$("new-question").addEventListener("click", newChat);
 
 // Which kind of question the box will ask, said where the typing happens: once
-// a conversation has turns, the next question is a follow-up that is read in
-// their context; "New question" starts clean.
+// a conversation has turns, the next question is a follow-up read in their
+// context; the new-chat icon in the top bar starts clean.
 function updateComposerMode() {
   const followUp = turns.length > 0;
   $("followup").hidden = !followUp;
-  $("followup-title").textContent = followUp ? turns[0].question : "";
-  $("new-chat-top").hidden = !followUp;
   $("query").placeholder = followUp
     ? "Ask a follow-up about these results\u2026"
     : collection.placeholder;
@@ -466,7 +450,7 @@ async function refreshConversations() {
       }
     });
     const label = COLLECTIONS[item.scope]?.label;
-    const meta = text("div", `${label ? `${label} · ` : ""}${item.turnCount} turn${item.turnCount === 1 ? "" : "s"} · ${when(item.updatedAt)}`, "conversation-meta");
+    const meta = text("div", `${label ? `${label} · ` : ""}${when(item.updatedAt)}`, "conversation-meta");
     const remove = text("button", "×", "conversation-delete");
     remove.type = "button";
     remove.title = "Delete conversation";
@@ -497,7 +481,6 @@ async function openThread(id) {
   turns = await store.turns(id);
   $("thread").replaceChildren();
   $("chat-title").textContent = found.title;
-  $("delete-chat").hidden = false;
   $("intro").hidden = true;
   hideUsage();
   for (const record of turns) {

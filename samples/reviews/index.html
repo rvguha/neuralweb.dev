@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ask NLWeb Samples</title>
-  <link rel="stylesheet" href="../styles.css?v=19">
+  <link rel="stylesheet" href="../styles.css?v=20">
 </head>
 <body class="sidebar-collapsed">
   <div class="shell">
@@ -25,11 +25,9 @@
     <main>
       <header class="topbar">
         <button type="button" id="toggle-sidebar" class="icon" aria-label="Toggle sidebar" aria-expanded="false">&#9776;</button>
+        <button type="button" id="new-chat-top" class="icon new-chat-icon" title="New chat" aria-label="New chat"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
         <h1 id="chat-title">New chat</h1>
-        <button type="button" id="new-chat-top" class="new-question" title="Start a new question">+ New question</button>
-        <a href="../" class="chip home-link" title="All collections">&larr; All</a>
         <span id="scope-chip" class="chip"></span>
-        <button type="button" id="delete-chat" class="icon danger" title="Delete this conversation" aria-label="Delete this conversation" hidden>&#128465;</button>
         <span class="spacer"></span>
         <label class="mode">
           <span class="visually-hidden">Answer mode</span>
@@ -52,10 +50,7 @@
         </section>
       </div>
 
-      <div id="followup" class="followup" hidden>
-        <span>Follow-up to <q id="followup-title"></q></span>
-        <button type="button" id="new-question" class="link-button">Start a new question instead</button>
-      </div>
+      <div id="followup" class="followup" hidden>Follow-up</div>
       <form id="form" class="composer">
         <textarea id="query" required rows="1" placeholder="Ask about recipes, movies, products, trails or homes…" aria-label="Question"></textarea>
         <button id="submit" class="send" aria-label="Send">Ask</button>
@@ -78,7 +73,7 @@
       </div>
     </section>
   </dialog>
-  <script src="../config.js?v=19"></script>
-  <script type="module" src="../app.js?v=19"></script>
+  <script src="../config.js?v=20"></script>
+  <script type="module" src="../app.js?v=20"></script>
 </body>
 </html>

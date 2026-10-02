@@ -113,6 +113,16 @@ function clip(text, length) {
   return value.length > length ? `${value.slice(0, length).replace(/\s+\S*$/, "")}…` : value;
 }
 
+// "4 servings" and "Serves 4" both read "Serves 4"; "1 loaf" stays as it is.
+function servings(value) {
+  const text = String(value).trim();
+  if (/^serves\b/i.test(text)) return text;
+  if (/servings?/i.test(text) || /^\d+(\s*(to|-)\s*\d+)?$/.test(text)) {
+    return `Serves ${text.replace(/\s*servings?/i, "")}`;
+  }
+  return text;
+}
+
 // ---- per-type bodies -------------------------------------------------------
 
 function recipe(s) {
@@ -123,7 +133,7 @@ function recipe(s) {
   ];
   const calories = s.nutrition?.calories;
   return {
-    facts: [rating(s.aggregateRating, 5), ...times, s.recipeYield && `Serves ${String(s.recipeYield).replace(/ servings?/i, "")}`,
+    facts: [rating(s.aggregateRating, 5), ...times, s.recipeYield && servings(s.recipeYield),
             calories && `${String(calories).replace(/\s*calories?/i, "")} cal`],
     tags: [...names(s.recipeCuisine), ...names(s.recipeCategory),
            ...String(s.keywords || "").split(",").map(k => k.trim()).slice(0, 4)],
