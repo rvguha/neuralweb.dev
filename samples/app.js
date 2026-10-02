@@ -24,8 +24,8 @@ const apiBase = API[scope] || "";
 const askEndpoint = new URL(pageParams.get("ask") || `${apiBase}/ask`, location.href);
 const collection = COLLECTIONS[scope] || {};
 
-import { Threadstore } from "./threadstore.js?v=17";
-import { renderCard } from "./cards.js?v=17";
+import { Threadstore } from "./threadstore.js?v=19";
+import { renderCard } from "./cards.js?v=19";
 
 // A conversation is the unit now, not a page load. `store` persists it,
 // `thread` is the one being added to, and `turns` mirrors it in memory so a
@@ -45,6 +45,7 @@ const sampleQueries = {
     "A make-ahead soup I can freeze in portions, under 400 calories a serving, that isn't just another lentil soup.",
   ],
   movies: [
+    "Give me movies about AI, but ones that portray AI in a positive light.",
     "Hitchcock films from the 1950s that aren't the famous ones everybody has seen \u2014 no Vertigo, no Rear Window.",
     "A highly rated John Ford western with John Wayne that runs under two hours.",
     "Japanese monster movies from the 1960s, the Ishir\u00f4 Honda kind, that still hold up for a modern viewer.",
@@ -139,6 +140,7 @@ function render(item) {
 // understood it, and the results for it. Turns accumulate, because a follow-up
 // only makes sense next to what it follows.
 function startTurn(question, options = {}) {
+  queueMicrotask(updateComposerMode);
   const turn = text("section", "", "turn");
   const head = text("div", "", "turn-head");
   const asked = text("div", question, "asked");
@@ -286,6 +288,7 @@ async function remember(record, node) {
 async function forgetTurn(node, seq) {
   node.remove();
   turns = turns.filter(t => t.seq !== seq);
+  updateComposerMode();
   if (!store?.available || !thread || seq === undefined) return;
   const updated = await store.removeTurn(thread.id, seq);
   if (!updated) {           // that was the last turn; the thread went with it
@@ -318,10 +321,26 @@ function newChat() {
   $("samples").open = true;
   hideUsage();
   markActive(null);
+  updateComposerMode();
   $("query").focus();
 }
 
 $("new-chat").addEventListener("click", newChat);
+$("new-chat-top").addEventListener("click", newChat);
+$("new-question").addEventListener("click", newChat);
+
+// Which kind of question the box will ask, said where the typing happens: once
+// a conversation has turns, the next question is a follow-up that is read in
+// their context; "New question" starts clean.
+function updateComposerMode() {
+  const followUp = turns.length > 0;
+  $("followup").hidden = !followUp;
+  $("followup-title").textContent = followUp ? turns[0].question : "";
+  $("new-chat-top").hidden = !followUp;
+  $("query").placeholder = followUp
+    ? "Ask a follow-up about these results\u2026"
+    : collection.placeholder;
+}
 
 function dollars(value) {
   const cost = Number(value || 0);
@@ -390,7 +409,7 @@ function showSamples() {
 
 document.title = `Ask ${collection.label} \u00b7 NLWeb Samples`;
 $("scope-chip").textContent = `${collection.label} \u00b7 ${collection.source}`;
-$("query").placeholder = collection.placeholder;
+updateComposerMode();
 showSamples();
 
 const usageDialog = $("usage-dialog");

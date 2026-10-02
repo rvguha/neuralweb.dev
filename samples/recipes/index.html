@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ask NLWeb Samples</title>
-  <link rel="stylesheet" href="../styles.css?v=17">
+  <link rel="stylesheet" href="../styles.css?v=19">
 </head>
 <body class="sidebar-collapsed">
   <div class="shell">
@@ -26,6 +26,7 @@
       <header class="topbar">
         <button type="button" id="toggle-sidebar" class="icon" aria-label="Toggle sidebar" aria-expanded="false">&#9776;</button>
         <h1 id="chat-title">New chat</h1>
+        <button type="button" id="new-chat-top" class="new-question" title="Start a new question">+ New question</button>
         <a href="../" class="chip home-link" title="All collections">&larr; All</a>
         <span id="scope-chip" class="chip"></span>
         <button type="button" id="delete-chat" class="icon danger" title="Delete this conversation" aria-label="Delete this conversation" hidden>&#128465;</button>
@@ -51,6 +52,10 @@
         </section>
       </div>
 
+      <div id="followup" class="followup" hidden>
+        <span>Follow-up to <q id="followup-title"></q></span>
+        <button type="button" id="new-question" class="link-button">Start a new question instead</button>
+      </div>
       <form id="form" class="composer">
         <textarea id="query" required rows="1" placeholder="Ask about recipes, movies, products, trails or homes…" aria-label="Question"></textarea>
         <button id="submit" class="send" aria-label="Send">Ask</button>
@@ -73,7 +78,7 @@
       </div>
     </section>
   </dialog>
-  <script src="../config.js?v=17"></script>
-  <script type="module" src="../app.js?v=17"></script>
+  <script src="../config.js?v=19"></script>
+  <script type="module" src="../app.js?v=19"></script>
 </body>
 </html>
