@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wake NLWeb Samples</title>
+  <style>
+    :root { color-scheme: light; --ink: #1d2433; --muted: #52607d; --accent: #3b5ccc; --line: #dfe4ef; --ok: #1f7a4d; --bad: #a3324a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: #f6f7fb; }
+    main { max-width: 720px; margin: 0 auto; padding: 48px 16px; }
+    h1 { margin: 0 0 6px; font-size: 1.8rem; }
+    p { margin: 0 0 24px; color: var(--muted); }
+    button { font: inherit; font-weight: 600; padding: 10px 18px; color: white; background: var(--accent); border: 0; border-radius: 9px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    table { width: 100%; margin-top: 20px; border-collapse: collapse; background: white; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+    th { font-size: .82rem; color: var(--muted); font-weight: 600; }
+    tr:last-child td { border-bottom: 0; }
+    td.status { font-variant-numeric: tabular-nums; }
+    .ok { color: var(--ok); } .bad { color: var(--bad); } .wait { color: var(--muted); }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Wake the samples</h1>
+    <p>Each collection runs on its own Cloud Run service, which sleeps after about 15 idle minutes. This pings all five so the next question is answered without a cold start.</p>
+    <button id="wake" type="button">Wake all again</button>
+    <table>
+      <thead><tr><th>Collection</th><th>Status</th><th>Items</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+  <script src="../config.js"></script>
+  <script>
+    const COLLECTIONS = [
+      ["recipes", "Recipes"], ["movies", "Movies"], ["reviews", "Product reviews"],
+      ["trails", "Trails"], ["homes", "Bay Area homes"],
+    ];
+    const API = window.NLWEB_API || {};
+    const rows = document.getElementById("rows");
+    const cells = {};
+    for (const [kind, label] of COLLECTIONS) {
+      const tr = document.createElement("tr");
+      const name = document.createElement("td");
+      const link = document.createElement("a");
+      link.href = `../${kind}/`; link.textContent = label;
+      name.append(link);
+      const status = document.createElement("td"); status.className = "status wait"; status.textContent = "—";
+      const items = document.createElement("td"); items.textContent = "";
+      tr.append(name, status, items); rows.append(tr);
+      cells[kind] = { status, items };
+    }
+
+    // Under ~1.5s the instance was already up; longer means this request woke it.
+    async function wake(kind) {
+      const { status, items } = cells[kind];
+      status.className = "status wait"; status.textContent = "waking…";
+      const started = performance.now();
+      try {
+        const response = await fetch(`${API[kind] || ""}/health`, { cache: "no-store" });
+        const health = await response.json();
+        const seconds = (performance.now() - started) / 1000;
+        if (!response.ok || health.status !== "ok") throw new Error(health.status || response.status);
+        status.className = "status ok";
+        status.textContent = seconds < 1.5 ? `warm (${seconds.toFixed(1)}s)` : `woke in ${seconds.toFixed(1)}s`;
+        const count = health.collections?.[kind];
+        items.textContent = count ? count.toLocaleString() : "";
+      } catch (error) {
+        status.className = "status bad"; status.textContent = `failed: ${error.message}`;
+      }
+    }
+
+    async function wakeAll() {
+      const button = document.getElementById("wake");
+      button.disabled = true;
+      await Promise.all(COLLECTIONS.map(([kind]) => wake(kind)));
+      button.disabled = false;
+    }
+    document.getElementById("wake").addEventListener("click", wakeAll);
+    // Opening the page is the request: wake everything straight away.
+    wakeAll();
+  </script>
+</body>
+</html>

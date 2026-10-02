@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ask NLWeb Samples</title>
+  <link rel="stylesheet" href="../styles.css?v=17">
+</head>
+<body class="sidebar-collapsed">
+  <div class="shell">
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-head">
+        <h2>Conversations</h2>
+        <button type="button" id="new-chat" class="icon" title="New chat" aria-label="New chat">+</button>
+      </div>
+      <input id="search" class="search" type="search" placeholder="Search conversations" aria-label="Search conversations">
+      <div id="conversations" class="conversations" role="list"></div>
+      <div class="sidebar-foot">
+        <span id="storage-usage"></span>
+        <button type="button" id="clear-all" class="link-button">Clear all</button>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <button type="button" id="toggle-sidebar" class="icon" aria-label="Toggle sidebar" aria-expanded="false">&#9776;</button>
+        <h1 id="chat-title">New chat</h1>
+        <a href="../" class="chip home-link" title="All collections">&larr; All</a>
+        <span id="scope-chip" class="chip"></span>
+        <button type="button" id="delete-chat" class="icon danger" title="Delete this conversation" aria-label="Delete this conversation" hidden>&#128465;</button>
+        <span class="spacer"></span>
+        <label class="mode">
+          <span class="visually-hidden">Answer mode</span>
+          <select id="mode">
+            <option value="list">List</option>
+            <option value="summarize" selected>Summarize</option>
+            <option value="generate">Generate</option>
+          </select>
+        </label>
+        <button type="button" id="usage-open" class="usage-open" aria-haspopup="dialog" aria-controls="usage-dialog" hidden>Cost <span id="usage-open-total"></span></button>
+      </header>
+
+      <div id="scroll" class="scroll">
+        <div id="thread" aria-live="polite"></div>
+        <section id="intro" class="intro">
+          <details id="samples" class="samples" open>
+            <summary id="samples-title">Try asking something like this</summary>
+            <div id="sample-queries" class="sample-queries"></div>
+          </details>
+        </section>
+      </div>
+
+      <form id="form" class="composer">
+        <textarea id="query" required rows="1" placeholder="Ask about recipes, movies, products, trails or homes…" aria-label="Question"></textarea>
+        <button id="submit" class="send" aria-label="Send">Ask</button>
+      </form>
+    </main>
+  </div>
+
+  <dialog id="usage-dialog" class="usage-dialog" aria-labelledby="usage-title">
+    <button type="button" id="usage-close" class="dialog-close" aria-label="Close">&times;</button>
+    <section id="usage">
+      <div class="usage-head">
+        <h2 id="usage-title">Query usage</h2>
+        <span id="usage-total"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Model</th><th>Calls</th><th>Prompt</th><th>Completion</th><th>Total</th><th>Cost (USD)</th></tr></thead>
+          <tbody id="usage-rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </dialog>
+  <script src="../config.js?v=17"></script>
+  <script type="module" src="../app.js?v=17"></script>
+</body>
+</html>

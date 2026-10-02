@@ -1,0 +1,206 @@
+:root { color-scheme: light; font: 16px/1.5 system-ui, sans-serif; color: #172036; background: #f4f6fb; }
+body { margin: 0; }
+main { width: min(760px, calc(100% - 32px)); margin: 72px auto; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; }
+h1 { margin-bottom: 24px; font-size: 2.2rem; letter-spacing: -.04em; }
+#status { color: #65708b; }
+form { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; padding: 12px; background: white; border-radius: 14px; box-shadow: 0 8px 32px #20305012; }
+input, button { box-sizing: border-box; min-width: 0; font: inherit; border: 1px solid #cad1df; border-radius: 9px; padding: 12px 14px; }
+input { width: 100%; }
+button { min-width: 76px; color: white; background: #3b5ccc; border-color: #3b5ccc; cursor: pointer; }
+button:disabled { opacity: .55; cursor: wait; }
+#answer, #notices { margin: 18px 0; padding: 14px 16px; border-radius: 10px; background: #eaf0ff; white-space: pre-wrap; }
+#notices { background: #fff3d9; }
+#thread { margin-top: 8px; }
+.turn { margin: 0 0 30px; }
+.turn + .turn { padding-top: 26px; border-top: 1px solid #e2e7f2; }
+.asked { font-size: 1.08rem; font-weight: 650; color: #172036; }
+.interpreted { margin-top: 4px; color: #65708b; font-size: .9rem; font-style: italic; }
+.turn-status { margin-top: 6px; color: #65708b; font-size: .88rem; }
+.answer, .notice { margin: 14px 0; padding: 14px 16px; border-radius: 10px; background: #eaf0ff; white-space: pre-wrap; }
+.notice { background: #fff3d9; }
+.results { padding: 0; margin: 12px 0 0; list-style: none; }
+.clear { color: #52607d; background: white; border-color: #d4dbea; }
+.clear[hidden] { display: none; }
+.clear:hover { color: #1d378d; border-color: #aebce1; }
+.result { margin: 12px 0; padding: 16px; background: white; border-radius: 12px; box-shadow: 0 4px 20px #2030500d; }
+.result.provisional { border-left: 3px solid #9bace3; animation: reveal .18s ease-out; }
+.head { font-weight: 650; }
+.meta, .description { color: #65708b; }
+@keyframes reveal { from { opacity: 0; transform: translateY(4px); } }
+@media (max-width: 560px) {
+  main { width: min(100% - 20px, 760px); margin-top: 28px; }
+  header { display: block; }
+  h1 { font-size: 1.8rem; }
+  form { grid-template-columns: minmax(0, 1fr); }
+  button { width: 100%; }
+}
+.tabs { display: flex; gap: 6px; margin: 22px 0 0; }
+.tab { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; min-width: 130px; padding: 10px 12px; color: #52607d; background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.tab:hover { color: #2747b3; background: #eef1fa; }
+.tab[aria-selected="true"] { color: #2747b3; background: white; border-bottom-color: #3b5ccc; }
+.samples { margin: 18px 0 24px; }
+.samples summary { width: fit-content; margin: 0 0 10px; color: #52607d; cursor: pointer; font-size: .95rem; font-weight: 700; }
+.samples:not([open]) summary { margin-bottom: 0; }
+.samples summary:hover { color: #294ebd; }
+.sample-queries { display: flex; flex-wrap: wrap; gap: 8px; }
+.sample-query { width: auto; min-width: 0; max-width: 100%; color: #344566; background: #e9edf8; border-color: #d8deed; padding: 7px 10px; font-size: .85rem; overflow-wrap: anywhere; text-align: left; }
+.sample-query:hover { color: #223f9d; background: #dfe6fb; border-color: #afbee9; }
+@media (max-width: 960px) {
+  .tab { flex: 1; }
+}
+@media (max-width: 560px) {
+  .tabs { width: 100%; }
+  .tab { min-width: 0; padding-inline: 4px; font-size: .82rem; }
+  .sample-query { width: 100%; }
+}
+
+.usage-open { margin: 6px 0; padding: 7px 10px; color: #3653ae; background: white; border-color: #d4dbea; font-size: .84rem; }
+.usage-open:hover { color: #1d378d; border-color: #aebce1; }
+.usage-open span { color: #65708b; }
+#usage { background: white; white-space: normal; }
+.usage-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-right: 36px; }
+.usage-head h2 { margin: 0; font-size: 1rem; }
+.usage-head span, td small { color: #65708b; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; margin-top: 10px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px; border-top: 1px solid #e2e6ef; text-align: right; }
+td small { display: block; font-size: .72rem; }
+.usage-dialog { width: min(780px, calc(100% - 32px)); }
+.dialog-close { position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; padding: 0; color: #52607d; background: #eef1f8; border-color: transparent; border-radius: 50%; font-size: 1.5rem; line-height: 1; }
+.dialog-close:hover { color: #172036; background: #e1e6f2; }
+@media (max-width: 560px) {
+  .usage-head, .head { align-items: flex-start; flex-direction: column; gap: 4px; }
+  dialog { width: calc(100% - 20px); max-height: calc(100vh - 20px); padding: 24px 22px; }
+}
+
+/* ---- chat shell: conversations beside a scrolling thread ---------------- */
+/* Only `.scroll` scrolls. Without this the document scrolls too: scrollIntoView
+   walks every scrollable ancestor, so scrolling a new turn into view moved the
+   whole page and carried the top bar -- with the query cost on it -- off the
+   screen, while the container it was meant to scroll never moved. */
+html, body { height: 100%; overflow: hidden; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+/* No transition on grid-template-columns: it left the grid stuck at the
+   collapsed track sizes after the class was removed -- body carried no
+   `sidebar-collapsed` class while the computed columns still read `0px 1280px`.
+   The panel opens and closes instantly, which is honest and always correct. */
+.shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); height: 100vh; }
+body.sidebar-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
+/* Hidden by clipping rather than `display: none`, so the column can animate
+   shut instead of snapping, and so the panel keeps its scroll position.
+   `min-width: 0` is what actually lets it close: a grid item defaults to
+   `min-width: auto` and refuses to shrink below its content, so the column
+   goes to zero while the panel stays 280px wide and overflows it. */
+.sidebar { overflow: hidden; min-width: 0; }
+body.sidebar-collapsed .sidebar { padding-inline: 0; border-right: none; visibility: hidden; }
+
+
+.sidebar { display: flex; flex-direction: column; gap: 10px; min-height: 0; padding: 14px 12px;
+  background: #f2f4f9; border-right: 1px solid #dfe4ef; }
+.sidebar-head { display: flex; align-items: center; justify-content: space-between; }
+.sidebar-head h2 { margin: 0; font-size: .95rem; color: #2b344a; }
+.icon { width: 30px; height: 30px; padding: 0; font-size: 1rem; line-height: 1; color: #3653ae;
+  background: white; border: 1px solid #d4dbea; border-radius: 7px; cursor: pointer; }
+.icon:hover { border-color: #aebce1; }
+.search { width: 100%; padding: 7px 9px; font-size: .84rem; border: 1px solid #d8deed;
+  border-radius: 7px; background: white; }
+
+.conversations { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+.conversation { position: relative; display: grid; gap: 1px; padding: 7px 26px 7px 9px;
+  border-radius: 7px; cursor: pointer; }
+.conversation:hover { background: #e5eaf6; }
+.conversation.active { background: #dfe6fb; }
+.conversation-open { display: block; width: 100%; padding: 0; font-size: .86rem; text-align: left;
+  color: #22304d; background: none; border: none; cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conversation-meta { font-size: .74rem; color: #74809a; }
+.conversation-delete { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px;
+  padding: 0; font-size: .9rem; line-height: 1; color: #8a93a8; background: none;
+  border: none; border-radius: 4px; cursor: pointer; opacity: 0; }
+.conversation:hover .conversation-delete { opacity: 1; }
+.conversation-delete:hover { color: #a3324a; background: #f3d9df; }
+.sidebar-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-top: 8px; font-size: .74rem; color: #74809a; border-top: 1px solid #dfe4ef; }
+.link-button { padding: 0; font-size: .74rem; color: #6b7690; background: none; border: none;
+  text-decoration: underline; cursor: pointer; }
+.link-button:hover { color: #a3324a; }
+.empty { margin: 8px 2px; font-size: .8rem; color: #74809a; }
+
+/* Overrides the single-column layout this file was written for: `main` there is
+   a centred 760px column with a 72px top margin, which in a full-height shell
+   squeezes the thread and pushes the top bar -- and the query cost on it -- off
+   the screen. */
+main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  width: auto; max-width: none; min-width: 0; height: 100vh; margin: 0; }
+.topbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 10px 20px;
+  background: white; border-bottom: 1px solid #e3e7f1; }
+/* The title is the only thing here that may shrink, and a flex item will not
+   shrink below its content without min-width:0 -- without it the bar overflows
+   at narrow widths and pushes the query cost off the right edge instead of
+   ellipsising the title. Everything else keeps its size, and wraps if it must. */
+.topbar h1 { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 1rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar .chip, .topbar .mode, .topbar .usage-open, .topbar .icon { flex: 0 0 auto; }
+.chip { padding: 3px 9px; font-size: .74rem; color: #3d4a68; background: #eef1f9;
+  border: 1px solid #dfe4ef; border-radius: 999px; white-space: nowrap; }
+.spacer { flex: 1; }
+.mode select { padding: 5px 8px; font-size: .8rem; color: #2b344a; background: white;
+  border: 1px solid #d4dbea; border-radius: 7px; }
+
+.scroll { min-height: 0; overflow-y: auto; padding: 18px 20px 8px; }
+.intro { max-width: 780px; }
+
+.composer { display: flex; align-items: flex-end; gap: 8px; padding: 12px 20px 16px;
+  background: white; border-top: 1px solid #e3e7f1; }
+.composer textarea { flex: 1; min-height: 42px; max-height: 200px; padding: 11px 12px;
+  font: inherit; font-size: .92rem; line-height: 1.45; color: #1b2130; resize: none;
+  background: white; border: 1px solid #cfd7e8; border-radius: 10px; }
+.composer textarea:focus { outline: 2px solid #b9c6ec; outline-offset: -1px; border-color: #8fa4dd; }
+.send { padding: 11px 18px; font-size: .9rem; }
+
+@media (max-width: 760px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { display: none; }
+}
+
+/* Removing a turn, or the conversation it belongs to. Both stay quiet until
+   hovered: a delete control that advertises itself invites the accident. */
+.turn-head { display: flex; align-items: flex-start; gap: 10px; }
+.turn-head .asked { flex: 1 1 auto; min-width: 0; }
+.turn-delete { flex: 0 0 auto; width: 22px; height: 22px; padding: 0; font-size: 1rem;
+  line-height: 1; color: #8a93a8; background: none; border: none; border-radius: 5px;
+  cursor: pointer; opacity: 0; transition: opacity .12s ease; }
+.turn:hover .turn-delete, .turn-delete:focus-visible { opacity: 1; }
+.turn-delete:hover { color: #a3324a; background: #f3d9df; }
+.icon.danger { color: #a3324a; border-color: #e6c9d1; }
+.icon.danger:hover { background: #f7e6ea; border-color: #d99aa9; }
+
+/* ---- result cards: one frame, a body per schema.org type (cards.js) ------ */
+.result.card { display: grid; grid-template-columns: 132px minmax(0, 1fr); gap: 16px; align-items: start; }
+.result.card.no-thumb { grid-template-columns: minmax(0, 1fr); }
+.thumb { width: 132px; height: 132px; object-fit: cover; border-radius: 10px; background: #e9edf6; }
+.card-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.card .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.card .title { font-size: 1.05rem; font-weight: 650; color: #1d378d; text-decoration: none; }
+.card .title:hover { text-decoration: underline; }
+.card .price { flex: none; font-weight: 700; color: #172036; font-variant-numeric: tabular-nums; }
+.card .meta { font-size: .86rem; }
+.facts { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .88rem; color: #2b344a; font-variant-numeric: tabular-nums; }
+.fact + .fact::before { content: none; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-tag { padding: 2px 9px; font-size: .78rem; color: #3b4a73; background: #edf1fb; border-radius: 999px; }
+.why { margin: 2px 0 0; padding-left: 10px; color: #4a5672; font-size: .92rem; border-left: 3px solid #c9d4f2; }
+.plot { margin: 0; color: #3b4560; font-size: .92rem; }
+.labelled { font-size: .9rem; color: #2b344a; }
+.labelled .label { margin-right: 6px; color: #74809a; font-weight: 600; }
+.expand { font-size: .9rem; }
+.expand summary { cursor: pointer; color: #3b5ccc; font-weight: 600; width: fit-content; }
+.expand .plain { margin: 6px 0 0; padding-left: 18px; color: #2b344a; columns: 2 220px; column-gap: 24px; }
+.expand .plain li { break-inside: avoid; margin-bottom: 2px; }
+.small-link { font-size: .86rem; color: #3b5ccc; width: fit-content; }
+@media (max-width: 560px) {
+  .result.card { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; }
+  .thumb { width: 84px; height: 84px; }
+  .card .head { flex-direction: column; gap: 2px; }
+}
