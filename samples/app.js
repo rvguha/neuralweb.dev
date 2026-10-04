@@ -37,6 +37,9 @@ let corpus = null;
 
 const sampleQueries = {
   recipes: [
+    "I'm organizing an outdoor summer party. A number of my guests are pre-diabetic or diabetic. I want a fruit-forward dessert that can sit outside for a few hours without melting or spoiling.",
+    "My in-laws are visiting. My father-in-law has celiac disease, my sister-in-law is vegetarian and the kids won't eat anything spicy. One dinner everyone can eat, ideally made in one pot.",
+    "I'm recovering from surgery and can only cook once a week. High-protein meals that reheat well all week and don't rely on red meat.",
     "I'm hosting Thanksgiving for twelve. Three guests are vegan and one is gluten-free. I want one showstopper main that works for all of them, ideally something I can make the day before.",
     "A weeknight dinner on the table in under 30 minutes using chicken thighs, and not Italian \u2014 my family is sick of pasta.",
     "Something vegetarian and Indian for a cold winter night, highly rated, that doesn't need a long list of whole spices I'd have to go out and buy.",
@@ -54,6 +57,9 @@ const sampleQueries = {
     "Gritty 1970s crime movies set in New York, the kind where the city feels like a character.",
   ],
   reviews: [
+    "I'm moving into a 400-square-foot studio with no dishwasher and almost no counter space. Which kitchen appliances are actually worth the room, and which can I skip?",
+    "My mother is in her eighties, lives alone and is hard of hearing. What gadgets would help her stay safe at home without her needing a smartphone?",
+    "My home office gets hot in summer and my windows can't take a window air conditioner. What will keep me cool and stay quiet enough for video calls?",
     "I have two cats, a long-haired dog and hardwood floors. Which robot vacuum handles pet hair without tangling, and is there a budget pick?",
     "We're setting up a nursery. Which baby monitor works without a Wi-Fi app or an account?",
     "I type all day and my wrists hurt. Which wireless keyboard is best for ergonomics, and does it work with a Mac?",
@@ -70,6 +76,7 @@ const sampleQueries = {
     "Dog-friendly out-and-back trails in the Oakland hills with views of the Bay.",
   ],
   homes: [
+    "Family of five, and my mother is moving in with us. We need at least 4 bedrooms with one she can reach without stairs, good schools, under $2.5 million.",
     "A 4-bedroom home in Fremont or Pleasanton under $2 million, ideally on a bigger-than-average lot.",
     "Anything in the Palo Alto Unified school district under $3 million \u2014 I'll trade square footage for the schools.",
     "Sunnyvale or Mountain View, at least 3 bedrooms, central air and a two-car garage, and no HOA.",
