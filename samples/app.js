@@ -37,7 +37,11 @@ let corpus = null;
 
 // Ranking models offered in the picker; ids must be in ranking_models.py.
 // Order and notes from the 2026-10-04 edge-case comparison (12 hard queries).
+// "Auto" sends no model: the server ranks with its default and, where a
+// collection is configured for it (recipes), moves requests that state a
+// dietary restriction to a stronger model.
 const RANKING_MODELS = [
+  ["", "Auto"],
   ["openai/gpt-oss-20b", "GPT-OSS 20B"],
   ["openai/gpt-oss-120b", "GPT-OSS 120B"],
   ["google/gemma-4-26b-a4b-it", "Gemma 4 26B"],
@@ -194,6 +198,12 @@ function startTurn(question, options = {}) {
       const note = text("div", `interpreted as: ${value}`, "interpreted");
       asked.after(note);
     },
+    setRestrictions: value => {
+      if (!value?.restrictions?.length) return;
+      const label = RANKING_MODELS.find(([id]) => id === value.ranking_model)?.[1] || value.ranking_model;
+      const note = text("div", `diet: ${value.restrictions.join(", ")} \u00b7 ranked by ${label}`, "interpreted");
+      (head.querySelector(".interpreted") || asked).after(note);
+    },
     addNotice: value => {
       let notice = turn.querySelector(".notice");
       if (!notice) {
@@ -240,8 +250,9 @@ $("form").addEventListener("submit", async event => {
   turns.push(record);
 
   try {
-    const args = { query, site: scope, mode: $("mode").value, ranking_model: $("model").value,
+    const args = { query, site: scope, mode: $("mode").value,
                    previous_queries: previous, previous_results: previousResults };
+    if ($("model").value) args.ranking_model = $("model").value;
     const provisional = new Set();
     let finalStarted = false;
     let finalCount = 0;
@@ -278,6 +289,9 @@ $("form").addEventListener("submit", async event => {
         record.usage = content;
         renderUsage(content);
         if (done) turn.setStatus(turnSummary(finalCount, record.usage));
+      } else if (type === "restrictions" && content?.restrictions?.length) {
+        record.restrictions = content;
+        turn.setRestrictions(content);
       } else if (type === "decontextualized_query") {
         turn.setInterpreted(content);
         record.interpretedAs = content;
@@ -521,6 +535,7 @@ async function openThread(id) {
   for (const record of turns) {
     const turn = startTurn(record.question, { seq: record.seq });
     turn.setInterpreted(record.interpretedAs);
+    turn.setRestrictions(record.restrictions);
     for (const item of record.results || []) turn.results.append(render(item));
     if (record.answer) turn.setAnswer(record.answer);
     for (const notice of record.notices || []) turn.addNotice(notice);
