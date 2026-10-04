@@ -35,6 +35,20 @@ let thread = null;
 let turns = [];
 let corpus = null;
 
+// Ranking models offered in the picker; ids must be in ranking_models.py.
+// Order and notes from the 2026-10-04 edge-case comparison (12 hard queries).
+const RANKING_MODELS = [
+  ["openai/gpt-oss-20b", "GPT-OSS 20B"],
+  ["openai/gpt-oss-120b", "GPT-OSS 120B"],
+  ["google/gemma-4-26b-a4b-it", "Gemma 4 26B"],
+  ["google/gemma-4-31b-it", "Gemma 4 31B"],
+  ["google/gemini-2.5-flash-lite", "Gemini 2.5 Flash Lite"],
+  ["google/gemini-3.1-flash-lite", "Gemini 3.1 Flash Lite"],
+  ["google/gemini-3.5-flash-lite", "Gemini 3.5 Flash Lite"],
+  ["google/gemini-3.8-flash", "Gemini 3.8 Flash"],
+];
+const MODEL_KEY = "ask-samples:model";
+
 const sampleQueries = {
   recipes: [
     "I'm organizing an outdoor summer party. A number of my guests are pre-diabetic or diabetic. I want a fruit-forward dessert that can sit outside for a few hours without melting or spoiling.",
@@ -209,11 +223,16 @@ $("form").addEventListener("submit", async event => {
   const turn = startTurn(query);
   // Built up as the stream arrives; stored whole when the turn completes.
   const record = { question: query, askedAt: Date.now(), interpretedAs: null,
-                   mode: $("mode").value, results: [], answer: null,
+                   mode: $("mode").value, model: $("model").value, results: [], answer: null,
                    notices: [], usage: null };
   // What came before, captured before this turn joins the list -- a question is
   // not its own antecedent.
-  const previous = turns.slice(-5).map(t => t.question);
+  // Earlier turns as the server understood them: a rewrite carries the context
+  // its own turn inherited, so the chain does not depend on raw fragments like
+  // "what about coconut?". The last turn's result names let a follow-up point
+  // at one ("the granita will melt").
+  const previous = turns.slice(-5).map(t => t.interpretedAs || t.question);
+  const previousResults = (turns.at(-1)?.results || []).slice(0, 10).map(item => item.name).filter(Boolean);
   // Joined now rather than on completion. A follow-up asked while the previous
   // answer is still streaming would otherwise be sent with no context, and the
   // server would decontextualize it against nothing -- silently, because a
@@ -221,7 +240,8 @@ $("form").addEventListener("submit", async event => {
   turns.push(record);
 
   try {
-    const args = { query, site: scope, mode: $("mode").value, previous_queries: previous };
+    const args = { query, site: scope, mode: $("mode").value, ranking_model: $("model").value,
+                   previous_queries: previous, previous_results: previousResults };
     const provisional = new Set();
     let finalStarted = false;
     let finalCount = 0;
@@ -402,6 +422,14 @@ document.title = `Ask ${collection.label} \u00b7 NLWeb Samples`;
 $("scope-chip").textContent = `${collection.label} \u00b7 ${collection.source}`;
 updateComposerMode();
 showSamples();
+for (const [id, label] of RANKING_MODELS) $("model").append(new Option(label, id));
+try {
+  const saved = localStorage.getItem(MODEL_KEY);
+  if (RANKING_MODELS.some(([id]) => id === saved)) $("model").value = saved;
+} catch {}
+$("model").addEventListener("change", () => {
+  try { localStorage.setItem(MODEL_KEY, $("model").value); } catch {}
+});
 
 const usageDialog = $("usage-dialog");
 $("usage-open").addEventListener("click", () => usageDialog.showModal());
