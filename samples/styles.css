@@ -45,6 +45,7 @@ button:disabled { opacity: .55; cursor: wait; }
 .samples summary:hover { color: #294ebd; }
 .sample-queries { display: flex; flex-wrap: wrap; gap: 8px; }
 .sample-query { width: auto; min-width: 0; max-width: 100%; color: #344566; background: #e9edf8; border-color: #d8deed; padding: 7px 10px; font-size: .85rem; overflow-wrap: anywhere; text-align: left; }
+.sample-why { display: block; margin-top: 3px; color: #6b7590; font-size: .78rem; font-style: italic; }
 .sample-query:hover { color: #223f9d; background: #dfe6fb; border-color: #afbee9; }
 @media (max-width: 960px) {
   .tab { flex: 1; }
