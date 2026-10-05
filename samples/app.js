@@ -65,7 +65,7 @@ const sampleQueries = {
     ["Quick weeknight salmon",
      "Adds a time limit, read from each recipe's total time."],
     ["Vegetarian chili",
-     "A diet word, even in a short query, moves ranking to the stronger model."],
+     "A diet in two words. Vegetarian needs no stronger model; allergens like gluten or nuts do."],
     ["A cake that uses up overripe bananas",
      "Ingredient-first: the banana is in the recipe, not the title."],
     ["Something I can make with leftover rice",
@@ -95,7 +95,7 @@ const sampleQueries = {
     ["Passover seder for ten. My brother-in-law keeps kosher and is also gluten-free. A main I can make the day before.",
      "Three rule sets at once: Passover, kosher and gluten-free, with fixes like gluten-free matzo meal."],
     ["I'm organizing an outdoor summer party. A number of my guests are pre-diabetic or diabetic. I want a fruit-forward dessert that can sit outside for a few hours without melting or spoiling.",
-     "Common sense: anything frozen melts outside. Diabetic guests switch ranking to a stronger model, which suggests sugar swaps."],
+     "Common sense: anything frozen melts outside. The answers suggest sugar swaps for the diabetic guests."],
   ],
   movies: [
     ["Give me movies about AI, but ones that portray AI in a positive light.",
