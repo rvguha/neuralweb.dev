@@ -53,32 +53,49 @@ const RANKING_MODELS = [
 ];
 const MODEL_KEY = "ask-samples:model";
 
+// Shown above a collection's samples when they are ordered.
+const sampleOrder = { recipes: "These go roughly from easy to hard. Run one and open Cost to see what it tests." };
+
 const sampleQueries = {
   recipes: [
-    ["I'm organizing an outdoor summer party. A number of my guests are pre-diabetic or diabetic. I want a fruit-forward dessert that can sit outside for a few hours without melting or spoiling.",
-     "Common sense: anything frozen melts outside. Diabetic guests switch ranking to a stronger model, which suggests sugar swaps."],
-    ["Passover seder for ten. My brother-in-law keeps kosher and is also gluten-free. A main I can make the day before.",
-     "Three rule sets at once: Passover, kosher and gluten-free, with fixes like gluten-free matzo meal."],
-    ["My in-laws are visiting. My father-in-law has celiac disease, my sister-in-law is vegetarian and the kids won't eat anything spicy. One dinner everyone can eat, ideally made in one pot.",
-     "Three people, three rules. A pasta dish qualifies only with a gluten-free swap, and the answer says which."],
-    ["I'm hosting Thanksgiving for twelve. Three guests are vegan and one is gluten-free. I want one showstopper main that works for all of them, ideally something I can make the day before.",
-     "Most vegan mains hide wheat in pastry, breadcrumbs or soy sauce; each answer names the substitution."],
-    ["A first birthday cake for a toddler who is allergic to dairy and eggs, but it has to look good in the photos.",
-     "Two allergies plus a soft requirement (photogenic); suggests egg replacer and dairy-free swaps."],
-    ["A bake sale on a hot day: cookies or bars that won't melt or go soft on a table outside, and are labeled nut-free.",
-     "An allergy label plus heat: rules out chocolate coatings and cream fillings."],
-    ["Iftar for eight during Ramadan, halal, and it needs to wait in a low oven until sunset without drying out.",
-     "A religious rule plus timing: dishes that can hold in a low oven for an hour."],
-    ["Low-sodium dinners for my dad after his heart attack that don't taste like hospital food.",
-     "A medical diet where the useful answer is how to cut the salt, not just which recipe has none."],
-    ["I'm recovering from surgery and can only cook once a week. High-protein meals that reheat well all week and don't rely on red meat.",
-     "Planning, not one dish: protein, reheating and an exclusion together."],
-    ["Tight budget this week: a vegetarian dinner for four from pantry staples like canned beans, rice and frozen vegetables.",
-     "Cooks from what's on hand rather than from a recipe name."],
+    ["Chocolate chip cookies",
+     "A one-phrase lookup: the baseline any search box handles."],
+    ["A classic lasagna",
+     "Still a lookup, but 'classic' has to beat the many lasagna variations."],
+    ["Quick weeknight salmon",
+     "Adds a time limit, read from each recipe's total time."],
+    ["Vegetarian chili",
+     "A diet word, even in a short query, moves ranking to the stronger model."],
+    ["A cake that uses up overripe bananas",
+     "Ingredient-first: the banana is in the recipe, not the title."],
+    ["Something I can make with leftover rice",
+     "Cooked rice as an ingredient, not rice as the dish."],
+    ["A make-ahead breakfast casserole for a crowd",
+     "Three constraints: meal, make-ahead and serving size."],
     ["I have a pile of summer tomatoes and corn from the farmers market. What can I make that shows them off without turning on the oven?",
      "Ingredient-first, plus an equipment rule for a hot day."],
+    ["Tight budget this week: a vegetarian dinner for four from pantry staples like canned beans, rice and frozen vegetables.",
+     "Cooks from what's on hand rather than from a recipe name."],
     ["Something vegetarian and Indian for a cold winter night, highly rated, that doesn't need a long list of whole spices I'd have to go out and buy.",
      "Cuisine, season, ratings and a limit on shopping, all in one."],
+    ["I'm recovering from surgery and can only cook once a week. High-protein meals that reheat well all week and don't rely on red meat.",
+     "Planning, not one dish: protein, reheating and an exclusion together."],
+    ["Low-sodium dinners for my dad after his heart attack that don't taste like hospital food.",
+     "A medical diet where the useful answer is how to cut the salt, not just which recipe has none."],
+    ["Iftar for eight during Ramadan, halal, and it needs to wait in a low oven until sunset without drying out.",
+     "A religious rule plus timing: dishes that can hold in a low oven for an hour."],
+    ["A bake sale on a hot day: cookies or bars that won't melt or go soft on a table outside, and are labeled nut-free.",
+     "An allergy label plus heat: rules out chocolate coatings and cream fillings."],
+    ["A first birthday cake for a toddler who is allergic to dairy and eggs, but it has to look good in the photos.",
+     "Two allergies plus a soft requirement (photogenic); suggests egg replacer and dairy-free swaps."],
+    ["I'm hosting Thanksgiving for twelve. Three guests are vegan and one is gluten-free. I want one showstopper main that works for all of them, ideally something I can make the day before.",
+     "Most vegan mains hide wheat in pastry, breadcrumbs or soy sauce; each answer names the substitution."],
+    ["My in-laws are visiting. My father-in-law has celiac disease, my sister-in-law is vegetarian and the kids won't eat anything spicy. One dinner everyone can eat, ideally made in one pot.",
+     "Three people, three rules. A pasta dish qualifies only with a gluten-free swap, and the answer says which."],
+    ["Passover seder for ten. My brother-in-law keeps kosher and is also gluten-free. A main I can make the day before.",
+     "Three rule sets at once: Passover, kosher and gluten-free, with fixes like gluten-free matzo meal."],
+    ["I'm organizing an outdoor summer party. A number of my guests are pre-diabetic or diabetic. I want a fruit-forward dessert that can sit outside for a few hours without melting or spoiling.",
+     "Common sense: anything frozen melts outside. Diabetic guests switch ranking to a stronger model, which suggests sugar swaps."],
   ],
   movies: [
     ["Give me movies about AI, but ones that portray AI in a positive light.",
@@ -331,7 +348,7 @@ $("form").addEventListener("submit", async event => {
         record.notices.push(content);
       } else if (type === "usage" && content) {
         record.usage = content;
-        renderUsage(content);
+        renderUsage(content, sampleNote(query));
         if (done) turn.setStatus(turnSummary(finalCount, record.usage));
       } else if (type === "restrictions" && content?.restrictions?.length) {
         record.restrictions = content;
@@ -429,7 +446,9 @@ function conversationCost() {
   return turns.reduce((sum, t) => sum + Number(t.usage?.cost || 0), 0);
 }
 
-function renderUsage(usage) {
+function renderUsage(usage, note = "") {
+  $("usage-note").hidden = !note;
+  $("usage-note-text").textContent = note;
   const rows = $("usage-rows");
   rows.replaceChildren();
   const tokens = Number(usage.total_tokens || 0);
@@ -462,12 +481,17 @@ function hideUsage() {
   if ($("usage-dialog").open) $("usage-dialog").close();
 }
 
+// What a sample question tests, shown in the Cost box for its turn.
+function sampleNote(query) {
+  return (sampleQueries[scope] || []).find(([q]) => q === query)?.[1] || "";
+}
+
 function showSamples() {
   const container = $("sample-queries");
   container.replaceChildren();
-  for (const [query, why] of sampleQueries[scope] || []) {
+  if (sampleOrder[scope]) container.append(text("p", sampleOrder[scope], "sample-order"));
+  for (const [query] of sampleQueries[scope] || []) {
     const button = text("button", query, "sample-query");
-    button.append(text("span", why, "sample-why"));
     button.type = "button";
     button.addEventListener("click", () => {
       $("query").value = query;
@@ -587,7 +611,7 @@ async function openThread(id) {
     turn.setStatus(turnSummary((record.results || []).length, record.usage));
   }
   const last = turns[turns.length - 1];
-  if (last?.usage) renderUsage(last.usage);
+  if (last?.usage) renderUsage(last.usage, sampleNote(last.question));
   markActive(id);
   $("query").focus();
 }

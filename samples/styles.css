@@ -219,3 +219,6 @@ main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
 .followup .link-button { font-size: .84rem; color: #2747b3; text-decoration: underline; }
 .followup .link-button:hover { color: #1d378d; }
 .new-chat-icon { display: inline-flex; align-items: center; justify-content: center; color: #2747b3; }
+
+.sample-order { width: 100%; margin: 0 0 4px; color: #52607d; font-size: .85rem; }
+.usage-note { margin: 8px 0 12px; padding: 8px 10px; background: #eef2fb; border-radius: 6px; font-size: .9rem; color: #2f3a52; }
