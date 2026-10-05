@@ -499,11 +499,6 @@ document.title = `Ask ${collection.label} \u00b7 NLWeb Samples`;
 $("scope-chip").textContent = `${collection.label} \u00b7 ${collection.source}`;
 updateComposerMode();
 showSamples();
-// Wirecutter's markup names a guide's picks but not which pick fits which need,
-// so a summary there tends to fill the gap from memory (eval/wirecutter_truthfulness).
-// Its results are listed without one unless the reader asks for it.
-const DEFAULT_MODE = { reviews: "list" };
-if (DEFAULT_MODE[scope]) $("mode").value = DEFAULT_MODE[scope];
 for (const [id, label] of RANKING_MODELS) $("model").append(new Option(label, id));
 try {
   const saved = localStorage.getItem(MODEL_KEY);
