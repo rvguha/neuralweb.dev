@@ -15,6 +15,10 @@
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
     a.card { display: flex; flex-direction: column; gap: 6px; padding: 20px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
     a.card:hover, a.card:focus-visible { border-color: var(--accent); box-shadow: 0 4px 16px rgba(59, 92, 204, .12); outline: none; }
+    .item { display: flex; flex-direction: column; gap: 6px; }
+    .item > a.card { flex: 1; }
+    a.code { padding-left: 20px; font-size: .85rem; color: var(--muted); }
+    a.code:hover, a.code:focus-visible { color: var(--accent); }
     .emoji { font-size: 1.8rem; line-height: 1; }
     .name { font-weight: 700; font-size: 1.15rem; color: var(--accent); }
     .source { color: var(--muted); font-size: .9rem; }
@@ -27,27 +31,36 @@
     <h1>The New York Times on NeuralWeb</h1>
     <p class="lede">Natural-language search over three New York Times sources.</p>
     <nav class="grid" aria-label="New York Times sources">
-      <a class="card" href="https://rss.neuralweb.dev/nyt">
-        <span class="emoji" aria-hidden="true">🎙️</span>
-        <span class="name">NYT podcasts</span>
-        <span class="source">QDRSS · 73 shows</span>
-        <span class="about">Turn a question into an RSS feed of matching episodes from The Daily, The Ezra Klein Show, Hard Fork, Serial and every other NYT podcast, with the archive back to 2006.</span>
-        <span class="example">“Investigative series about crime, injustice and wrongful convictions”</span>
-      </a>
-      <a class="card" href="/samples/reviews/">
-        <span class="emoji" aria-hidden="true">🛒</span>
-        <span class="name">Wirecutter</span>
-        <span class="source">Product reviews · 4,000 articles</span>
-        <span class="about">Ask what to buy and get Wirecutter's tested picks, with prices.</span>
-        <span class="example">“A robot vacuum for two cats and a long-haired dog, plus a budget pick”</span>
-      </a>
-      <a class="card" href="/samples/recipes/">
-        <span class="emoji" aria-hidden="true">🍲</span>
-        <span class="name">Recipes</span>
-        <span class="source">NYT Cooking · 24,287 recipes</span>
-        <span class="about">Ask for a recipe the way you'd ask a friend: time, diet, ingredients on hand.</span>
-        <span class="example">“A showstopper Thanksgiving main that works for vegan and gluten-free guests”</span>
-      </a>
+      <div class="item">
+        <a class="card" href="https://rss.neuralweb.dev/nyt">
+          <span class="emoji" aria-hidden="true">🎙️</span>
+          <span class="name">NYT podcasts</span>
+          <span class="source">QDRSS · 73 shows</span>
+          <span class="about">Turn a question into an RSS feed of matching episodes from The Daily, The Ezra Klein Show, Hard Fork, Serial and every other NYT podcast, with the archive back to 2006.</span>
+          <span class="example">“Investigative series about crime, injustice and wrongful convictions”</span>
+        </a>
+        <a class="code" href="https://github.com/rvguha/rssnlweb">Code: rvguha/rssnlweb</a>
+      </div>
+      <div class="item">
+        <a class="card" href="/samples/reviews/">
+          <span class="emoji" aria-hidden="true">🛒</span>
+          <span class="name">Wirecutter</span>
+          <span class="source">Product reviews · 4,000 articles</span>
+          <span class="about">Ask what to buy and get Wirecutter's tested picks, with prices.</span>
+          <span class="example">“A robot vacuum for two cats and a long-haired dog, plus a budget pick”</span>
+        </a>
+        <a class="code" href="https://github.com/rvguha/nlweb-samples">Code: rvguha/nlweb-samples</a>
+      </div>
+      <div class="item">
+        <a class="card" href="/samples/recipes/">
+          <span class="emoji" aria-hidden="true">🍲</span>
+          <span class="name">Recipes</span>
+          <span class="source">NYT Cooking · 24,287 recipes</span>
+          <span class="about">Ask for a recipe the way you'd ask a friend: time, diet, ingredients on hand.</span>
+          <span class="example">“A showstopper Thanksgiving main that works for vegan and gluten-free guests”</span>
+        </a>
+        <a class="code" href="https://github.com/rvguha/nlweb-samples">Code: rvguha/nlweb-samples</a>
+      </div>
     </nav>
   </main>
 </body>
