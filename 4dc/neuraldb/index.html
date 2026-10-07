@@ -71,7 +71,7 @@
           if (typeof v.document !== 'string') continue;
           if (v.related && !relatedShown) { relatedShown = true; grid.append(el('h2', 'related', 'Related from Data Commons')); }
           const c = el('div', 'chart');
-          if (!v.component) c.append(el('h2', '', v.title || v.kind));      // Data Commons components draw their own header
+          if (!v.component && !v.vega_lite) c.append(el('h2', '', v.title || v.kind));   // components and Vega-Lite charts draw their own title
           const f = el('iframe', 'viz'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('referrerpolicy', 'no-referrer');
           f.setAttribute('title', v.title || v.kind); f.style.height = (Number.isInteger(v.height) ? v.height : 380) + 'px';
           lazy(f, v.document); c.append(f); grid.append(c);
