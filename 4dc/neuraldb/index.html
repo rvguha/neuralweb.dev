@@ -27,6 +27,9 @@
     .tag { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; color: var(--muted); }
     .claim { font-size: 1.05rem; }
     .err { color: #c0392b; }
+    .chart { padding: 12px 14px 8px; }
+    .chart h2 { margin: 0 0 6px; }
+    iframe.viz { width: 100%; border: 0; background: transparent; display: block; }
   </style>
 </head>
 <body>
@@ -41,6 +44,12 @@
     const API = 'https://kg.neuralweb.dev/ask';
     const out = document.getElementById('out'), q = document.getElementById('q'), go = document.getElementById('go');
     const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    // Mount a chart's frame when it scrolls into view: each one loads its own libraries, so six at once is slow
+    // and the Data Commons components draw only once visible anyway.
+    const seen = 'IntersectionObserver' in window ? new IntersectionObserver((entries, o) => {
+      for (const e of entries) if (e.isIntersecting) { e.target.srcdoc = e.target._doc; o.unobserve(e.target); }
+    }, { rootMargin: '200px' }) : null;
+    function lazy(frame, doc) { if (seen) { frame._doc = doc; seen.observe(frame); } else frame.srcdoc = doc; }
     async function ask(question) {
       out.replaceChildren(el('p', 'status', 'Looking it up\u2026 this can take 10\u201330 seconds.')); go.disabled = true;
       try {
@@ -53,6 +62,17 @@
         if (claims.length) { const c = el('div', 'card'); for (const t of claims) c.append(el('p', 'claim', typeof t === 'string' ? t : JSON.stringify(t))); out.append(c); }
         else out.append(el('div', 'card', 'No answer: ' + ((d.failures || []).map(f => f.reason).join('; ') || d.status || 'unknown')));
         for (const t of d.disclosures || []) out.append(el('p', 'meta', typeof t === 'string' ? t : JSON.stringify(t)));
+        // Plugins send their charts as a self-contained document (markup + a JavaScript chunk). It runs in a sandboxed
+        // frame WITHOUT allow-same-origin: the code cannot read this page, its storage or call APIs as it.
+        for (const v of d.visualizations || []) {
+          if (typeof v.document !== 'string') continue;
+          const c = el('div', 'card chart'); c.append(el('h2', '', v.title || v.kind));
+          const f = el('iframe', 'viz'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('referrerpolicy', 'no-referrer');
+          f.setAttribute('title', v.title || v.kind); f.style.height = (Number.isInteger(v.height) ? v.height : 380) + 'px';
+          lazy(f, v.document); c.append(f);
+          if (v.note) c.append(el('p', 'meta', v.note));
+          out.append(c);
+        }
         out.append(el('p', 'status', 'Status: ' + d.status + (d.seconds ? ' \u00b7 ' + Math.round(d.seconds) + ' s' : '')));
       } catch (err) { out.replaceChildren(el('p', 'err', 'Request failed: ' + err.message)); }
       go.disabled = false;
