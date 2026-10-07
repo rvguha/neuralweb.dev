@@ -29,6 +29,7 @@
     .err { color: #c0392b; }
     .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; margin-bottom: 12px; }
     .chart { overflow: hidden; }
+    .charts h2.related { grid-column: 1 / -1; margin: 10px 0 0; font-size: 1rem; color: var(--muted); font-weight: 600; }
     .chart h2 { margin: 8px 10px 0; font-size: 1rem; }
     iframe.viz { width: 100%; border: 0; background: transparent; display: block; }
   </style>
@@ -65,9 +66,10 @@
         for (const t of d.disclosures || []) out.append(el('p', 'meta', typeof t === 'string' ? t : JSON.stringify(t)));
         // Plugins send their charts as a self-contained document (markup + a JavaScript chunk). It runs in a sandboxed
         // frame WITHOUT allow-same-origin: the code cannot read this page, its storage or call APIs as it.
-        const grid = el('div', 'charts'), notes = new Set();
+        const grid = el('div', 'charts'), notes = new Set(); let relatedShown = false;
         for (const v of d.visualizations || []) {
           if (typeof v.document !== 'string') continue;
+          if (v.related && !relatedShown) { relatedShown = true; grid.append(el('h2', 'related', 'Related from Data Commons')); }
           const c = el('div', 'chart');
           if (!v.component) c.append(el('h2', '', v.title || v.kind));      // Data Commons components draw their own header
           const f = el('iframe', 'viz'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('referrerpolicy', 'no-referrer');
