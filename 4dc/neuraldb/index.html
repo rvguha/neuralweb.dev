@@ -27,8 +27,9 @@
     .tag { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; color: var(--muted); }
     .claim { font-size: 1.05rem; }
     .err { color: #c0392b; }
-    .chart { padding: 12px 14px 8px; }
-    .chart h2 { margin: 0 0 6px; }
+    .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; margin-bottom: 12px; }
+    .chart { overflow: hidden; }
+    .chart h2 { margin: 8px 10px 0; font-size: 1rem; }
     iframe.viz { width: 100%; border: 0; background: transparent; display: block; }
   </style>
 </head>
@@ -64,15 +65,18 @@
         for (const t of d.disclosures || []) out.append(el('p', 'meta', typeof t === 'string' ? t : JSON.stringify(t)));
         // Plugins send their charts as a self-contained document (markup + a JavaScript chunk). It runs in a sandboxed
         // frame WITHOUT allow-same-origin: the code cannot read this page, its storage or call APIs as it.
+        const grid = el('div', 'charts'), notes = new Set();
         for (const v of d.visualizations || []) {
           if (typeof v.document !== 'string') continue;
-          const c = el('div', 'card chart'); c.append(el('h2', '', v.title || v.kind));
+          const c = el('div', 'chart');
+          if (!v.component) c.append(el('h2', '', v.title || v.kind));      // Data Commons components draw their own header
           const f = el('iframe', 'viz'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('referrerpolicy', 'no-referrer');
           f.setAttribute('title', v.title || v.kind); f.style.height = (Number.isInteger(v.height) ? v.height : 380) + 'px';
-          lazy(f, v.document); c.append(f);
-          if (v.note) c.append(el('p', 'meta', v.note));
-          out.append(c);
+          lazy(f, v.document); c.append(f); grid.append(c);
+          if (v.note) notes.add(v.note);
         }
+        if (grid.children.length) out.append(grid);
+        for (const n of notes) out.append(el('p', 'meta', n));
         out.append(el('p', 'status', 'Status: ' + d.status + (d.seconds ? ' \u00b7 ' + Math.round(d.seconds) + ' s' : '')));
       } catch (err) { out.replaceChildren(el('p', 'err', 'Request failed: ' + err.message)); }
       go.disabled = false;
