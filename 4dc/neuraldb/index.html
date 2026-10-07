@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neural DB over Data Commons</title>
+  <style>
+    :root { color-scheme: light dark; --ink: #1d2433; --muted: #52607d; --accent: #3b5ccc; --line: #dfe4ef; --card: #fff; --bg: #f6f7fb; }
+    @media (prefers-color-scheme: dark) { :root { --ink: #e7e9ec; --muted: #9aa1ab; --accent: #8fb0ff; --line: #2c3037; --card: #1c1f24; --bg: #14161a; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); }
+    main { max-width: 860px; margin: 0 auto; padding: 48px 16px 64px; }
+    h1 { margin: 0 0 8px; font-size: clamp(1.7rem, 4vw, 2.3rem); letter-spacing: -.01em; }
+    .lede { margin: 0 0 28px; color: var(--muted); max-width: 660px; }
+    .crumb { font-size: .9rem; margin-bottom: 18px; } .crumb a { color: var(--muted); }
+    a { color: var(--accent); }
+    form { display: flex; gap: 8px; margin-bottom: 8px; }
+    input[type=text] { flex: 1; min-width: 0; padding: 12px 14px; font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+    button { padding: 12px 18px; font: inherit; font-weight: 600; color: #fff; background: var(--accent); border: 0; border-radius: 10px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .examples { margin: 0 0 24px; font-size: .9rem; color: var(--muted); }
+    .examples button { all: unset; cursor: pointer; color: var(--accent); margin-right: 12px; text-decoration: underline; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+    .card h2 { margin: 0 0 4px; font-size: 1.05rem; } .card p { margin: 4px 0; }
+    .meta, .status { color: var(--muted); font-size: .88rem; }
+    .tag { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; color: var(--muted); }
+    .claim { font-size: 1.05rem; }
+    .err { color: #c0392b; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="crumb"><a href="/4dc/">&larr; Data Commons</a></div>
+    <h1>Neural DB over Data Commons</h1>
+    <p class="lede">Ask a statistics question in plain English. Answers come live from Data Commons through Neural DB&rsquo;s Data Commons plugin, with the period of each value.</p>
+    <form id="f"><input type="text" id="q" maxlength="400" placeholder="e.g. What is the unemployment rate in Texas?" autofocus aria-label="Question"><button id="go">Ask</button></form>
+    <p class="examples">Try: <button type="button">What is the unemployment rate in Texas?</button><button type="button">Median household income in California</button><button type="button">Life expectancy in Japan</button></p>
+    <div id="out" aria-live="polite"></div>
+    <script>
+    const API = 'https://kg.neuralweb.dev/ask';
+    const out = document.getElementById('out'), q = document.getElementById('q'), go = document.getElementById('go');
+    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    async function ask(question) {
+      out.replaceChildren(el('p', 'status', 'Looking it up\u2026 this can take 10\u201330 seconds.')); go.disabled = true;
+      try {
+        const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, sources: ['datacommons'] }) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+        out.replaceChildren();
+        const claims = d.claims || [];
+        if (claims.length) { const c = el('div', 'card'); for (const t of claims) c.append(el('p', 'claim', typeof t === 'string' ? t : JSON.stringify(t))); out.append(c); }
+        else out.append(el('div', 'card', 'No answer: ' + ((d.failures || []).map(f => f.reason).join('; ') || d.status || 'unknown')));
+        for (const t of d.disclosures || []) out.append(el('p', 'meta', typeof t === 'string' ? t : JSON.stringify(t)));
+        out.append(el('p', 'status', 'Status: ' + d.status + (d.seconds ? ' \u00b7 ' + Math.round(d.seconds) + ' s' : '')));
+      } catch (err) { out.replaceChildren(el('p', 'err', 'Request failed: ' + err.message)); }
+      go.disabled = false;
+    }
+    document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); if (q.value.trim()) ask(q.value.trim()); });
+    document.querySelectorAll('.examples button').forEach(b => b.addEventListener('click', () => { q.value = b.textContent; ask(q.value); }));
+    </script>
+  </main>
+</body>
+</html>
