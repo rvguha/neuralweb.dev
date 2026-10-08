@@ -41,14 +41,30 @@
     const API = 'https://ard.neuralweb.dev/search', REPO = 'https://github.com/rvguha/ard-finder/blob/main/';
     const out = document.getElementById('out'), q = document.getElementById('q'), go = document.getElementById('go');
     const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const money = x => x < 0.01 ? '$' + x.toFixed(5) : '$' + x.toFixed(3);
+    const STAGES = { 'embed-query': 'Embed the question', rerank: 'Rerank candidates' };
+    function report(u, seconds, n) {
+      const box = el('details', 'report'); box.open = true;
+      const head = el('summary', 'status', n + ' result' + (n === 1 ? '' : 's') + ' \u00b7 ' + seconds.toFixed(1) + ' s' +
+        (u ? ' \u00b7 ' + u.total_tokens.toLocaleString() + ' tokens \u00b7 ' + money(u.cost_usd || 0) : ''));
+      box.append(head);
+      for (const ev of (u && u.call_events) || []) {
+        const ok = ev.outcome === 'success';
+        box.append(el('p', 'meta', (ok ? '\u2713 ' : '\u2717 ') + (STAGES[ev.stage] || ev.stage) + ' \u00b7 ' + ev.model + ' \u00b7 ' +
+          (ev.elapsed_ms / 1000).toFixed(2) + ' s \u00b7 ' + ev.tokens.toLocaleString() + ' tokens \u00b7 ' + money(ev.cost_usd || 0) + (ok ? '' : ' \u00b7 ' + ev.outcome)));
+      }
+      return box;
+    }
     async function search(text) {
       out.replaceChildren(el('p', 'status', 'Searching…')); go.disabled = true;
+      const t0 = performance.now();
       try {
         const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: { text }, sources: ['datacommons'], limit: 10 }) });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
         out.replaceChildren();
+        out.append(report(d.usage, (performance.now() - t0) / 1000, d.results.length));
         if (!d.results.length) out.append(el('p', 'status', 'No Data Commons documents matched.'));
         for (const e of d.results) {
           const c = el('div', 'card'); c.append(el('h2', '', e.displayName), el('p', '', e.description));
