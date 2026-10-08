@@ -23,6 +23,12 @@
     .examples button { all: unset; cursor: pointer; color: var(--accent); margin-right: 12px; text-decoration: underline; }
     .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
     .card h2 { margin: 0 0 4px; font-size: 1.05rem; } .card p { margin: 4px 0; }
+    .samples { margin: 6px 0 18px; }
+    .samples h2 { font-size: 1.02rem; margin: 0 0 2px; }
+    .samples .meta { margin: 0 0 8px; }
+    .samples ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .samples button { all: unset; cursor: pointer; color: var(--accent); text-decoration: underline; }
+    .samples .cat { color: var(--muted); font-size: .78rem; border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; margin-left: 6px; white-space: nowrap; }
     .meta, .status { color: var(--muted); font-size: .88rem; }
     .tag { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; color: var(--muted); }
     .claim { font-size: 1.05rem; }
@@ -35,7 +41,15 @@
     <h1>ARD search over Data Commons</h1>
     <p class="lede">Which Data Commons variables, from which sources, can answer a question? Results are ARD entries restricted to the <code>datacommons</code> source.</p>
     <form id="f"><input type="text" id="q" maxlength="400" placeholder="e.g. median household income by county" autofocus aria-label="Search"><button id="go">Search</button></form>
-    <p class="examples">Try: <button type="button">unemployment rate by state</button><button type="button">life expectancy by country</button><button type="button">homicide rate</button><button type="button">CO2 emissions per capita</button></p>
+    <section class="samples" aria-labelledby="samples-title">
+      <h2 id="samples-title">Sample questions</h2>
+      <ul>
+      <li><button type="button">What is the GDP of New Zealand?</button> <span class="cat">Economics</span></li>
+      <li><button type="button">Which countries have the lowest Gini index?</button> <span class="cat">Equity</span></li>
+      <li><button type="button">How does life expectancy vary across countries in Africa?</button> <span class="cat">Health</span></li>
+      <li><button type="button">Which nations currently hold the highest ranking for gross domestic product?</button> <span class="cat">Explore page</span></li>
+      </ul>
+    </section>
     <div id="out" aria-live="polite"></div>
     <script>
     const API = 'https://ard.neuralweb.dev/search', REPO = 'https://github.com/rvguha/ard-finder/blob/main/';
@@ -44,8 +58,8 @@
     const money = x => x < 0.01 ? '$' + x.toFixed(5) : '$' + x.toFixed(3);
     const STAGES = { 'embed-query': 'Embed the question', rerank: 'Rerank candidates' };
     function report(u, seconds, n) {
-      const box = el('details', 'report'); box.open = true;
-      const head = el('summary', 'status', n + ' result' + (n === 1 ? '' : 's') + ' \u00b7 ' + seconds.toFixed(1) + ' s' +
+      const box = el('div', 'report');
+      const head = el('p', 'status', n + ' result' + (n === 1 ? '' : 's') + ' \u00b7 ' + seconds.toFixed(1) + ' s' +
         (u ? ' \u00b7 ' + u.total_tokens.toLocaleString() + ' tokens \u00b7 ' + money(u.cost_usd || 0) : ''));
       box.append(head);
       for (const ev of (u && u.call_events) || []) {
@@ -64,7 +78,6 @@
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
         out.replaceChildren();
-        out.append(report(d.usage, (performance.now() - t0) / 1000, d.results.length));
         if (!d.results.length) out.append(el('p', 'status', 'No Data Commons documents matched.'));
         for (const e of d.results) {
           const c = el('div', 'card'); c.append(el('h2', '', e.displayName), el('p', '', e.description));
@@ -74,11 +87,12 @@
           const a = el('a', '', e['okf:sourceDocument']); a.href = REPO + e['okf:sourceDocument']; m.append(a); c.append(m);
           out.append(c);
         }
+        out.append(report(d.usage, (performance.now() - t0) / 1000, d.results.length));
       } catch (err) { out.replaceChildren(el('p', 'err', 'Search failed: ' + err.message)); }
       go.disabled = false;
     }
     document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); if (q.value.trim()) search(q.value.trim()); });
-    document.querySelectorAll('.examples button').forEach(b => b.addEventListener('click', () => { q.value = b.textContent; search(q.value); }));
+    document.querySelectorAll('.examples button, .samples button').forEach(b => b.addEventListener('click', () => { q.value = b.textContent; search(q.value); }));
     </script>
   </main>
 </body>
