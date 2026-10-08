@@ -6,215 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Neural DB over Data Commons</title>
   <style>
-    :root { color-scheme: light dark; --ink: #1d2433; --muted: #52607d; --accent: #3b5ccc; --line: #dfe4ef; --card: #fff; --bg: #f6f7fb; }
-    @media (prefers-color-scheme: dark) { :root { --ink: #e7e9ec; --muted: #9aa1ab; --accent: #8fb0ff; --line: #2c3037; --card: #1c1f24; --bg: #14161a; } }
-    * { box-sizing: border-box; }
-    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); }
-    main { max-width: 860px; margin: 0 auto; padding: 48px 16px 64px; }
-    h1 { margin: 0 0 8px; font-size: clamp(1.7rem, 4vw, 2.3rem); letter-spacing: -.01em; }
-    .lede { margin: 0 0 28px; color: var(--muted); max-width: 660px; }
-    .crumb { font-size: .9rem; margin-bottom: 18px; } .crumb a { color: var(--muted); }
-    a { color: var(--accent); }
-    form { display: flex; gap: 8px; margin-bottom: 8px; }
-    input[type=text] { flex: 1; min-width: 0; padding: 12px 14px; font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
-    button { padding: 12px 18px; font: inherit; font-weight: 600; color: #fff; background: var(--accent); border: 0; border-radius: 10px; cursor: pointer; }
-    button:disabled { opacity: .6; cursor: wait; }
-    .samples { margin: 6px 0 18px; }
-    .samples h2 { font-size: 1.02rem; margin: 0 0 6px; }
-    .samples .groups { columns: 2 340px; column-gap: 28px; }
-    .samples .group { break-inside: avoid; margin: 0 0 14px; }
-    .samples h3 { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 4px; }
-    .samples ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
-    .samples button { all: unset; cursor: pointer; color: var(--accent); text-decoration: underline; }
-    .meta, .status { color: var(--muted); font-size: .88rem; }
-    .tag { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; color: var(--muted); }
-    .claim { font-size: 1.05rem; }
-    .err { color: #c0392b; }
-    .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; margin-bottom: 12px; }
-    .chart { overflow: hidden; }
-    .charts h2.related { grid-column: 1 / -1; margin: 10px 0 0; font-size: 1rem; color: var(--muted); font-weight: 600; }
-    .chart h2 { margin: 8px 10px 0; font-size: 1rem; }
-    iframe.viz { width: 100%; border: 0; background: transparent; display: block; }
+    :root { color-scheme: light dark; --muted: #52607d; --bg: #fbfbfa; }
+    @media (prefers-color-scheme: dark) { :root { --muted: #9aa1ab; --bg: #15181c; } }
+    html, body { margin: 0; background: var(--bg); }
+    .crumb { max-width: 920px; margin: 0 auto; padding: 14px 16px 0; font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .crumb a { color: var(--muted); }
+    iframe { display: block; width: 100%; height: 100vh; border: 0; background: var(--bg); }
   </style>
 </head>
 <body>
-  <main>
-    <div class="crumb"><a href="/4dc/">&larr; Data Commons</a></div>
-    <h1>Neural DB over Data Commons</h1>
-    <p class="lede">Ask a statistics question in plain English. Answers come live from Data Commons through Neural DB&rsquo;s Data Commons plugin, with the period of each value.</p>
-    <form id="f"><input type="text" id="q" maxlength="400" placeholder="e.g. What is the unemployment rate in Texas?" autofocus aria-label="Question"><button id="go">Ask</button></form>
-    <section class="samples" aria-labelledby="samples-title">
-      <h2 id="samples-title">Sample questions</h2>
-      <div class="groups">
-        <div class="group">
-          <h3>Economy</h3>
-          <ul>
-            <li><button type="button">What is the GDP of New Zealand?</button></li>
-            <li><button type="button">What is India's GDP?</button></li>
-            <li><button type="button">What is the GDP of Brazil?</button></li>
-            <li><button type="button">What is the GDP per capita of Switzerland?</button></li>
-            <li><button type="button">What is the GDP per capita of Japan?</button></li>
-            <li><button type="button">Which countries have the highest GDP per capita?</button></li>
-            <li><button type="button">Which nations currently hold the highest ranking for gross domestic product?</button></li>
-            <li><button type="button">What is the inflation rate in Argentina?</button></li>
-            <li><button type="button">What is the inflation rate in Turkey?</button></li>
-            <li><button type="button">Which countries have the highest inflation rate?</button></li>
-          </ul>
-        </div>
-        <div class="group">
-          <h3>Work and income</h3>
-          <ul>
-            <li><button type="button">What is the unemployment rate in Texas?</button></li>
-            <li><button type="button">What is the unemployment rate in Germany?</button></li>
-            <li><button type="button">How has the unemployment rate in Spain changed over time?</button></li>
-            <li><button type="button">What is the median household income in California?</button></li>
-            <li><button type="button">What is the median household income in New York?</button></li>
-            <li><button type="button">What is the labor force participation rate in Germany?</button></li>
-            <li><button type="button">What is the labor force participation rate in Japan?</button></li>
-            <li><button type="button">What is the female labor force participation rate in Saudi Arabia?</button></li>
-          </ul>
-        </div>
-        <div class="group">
-          <h3>Population</h3>
-          <ul>
-            <li><button type="button">What is the population of France?</button></li>
-            <li><button type="button">What is the population of Texas?</button></li>
-            <li><button type="button">What is the population of Canada?</button></li>
-            <li><button type="button">What is the population of Ohio?</button></li>
-            <li><button type="button">What is the population of Nigeria?</button></li>
-            <li><button type="button">What is the population of Los Angeles County?</button></li>
-            <li><button type="button">How has the population of China changed over time?</button></li>
-            <li><button type="button">Which countries have the largest population?</button></li>
-            <li><button type="button">Which US states have the smallest population?</button></li>
-            <li><button type="button">What is the urban population share of Brazil?</button></li>
-            <li><button type="button">What is the urban population share of Japan?</button></li>
-            <li><button type="button">What is the fertility rate in Niger?</button></li>
-          </ul>
-        </div>
-        <div class="group">
-          <h3>Health</h3>
-          <ul>
-            <li><button type="button">What is the life expectancy in Japan?</button></li>
-            <li><button type="button">What is the life expectancy in Brazil?</button></li>
-            <li><button type="button">How does life expectancy vary across countries in Africa?</button></li>
-            <li><button type="button">Which countries have the highest life expectancy?</button></li>
-            <li><button type="button">What is the infant mortality rate in India?</button></li>
-            <li><button type="button">What is the infant mortality rate in Nigeria?</button></li>
-            <li><button type="button">What is the maternal mortality ratio in Nigeria?</button></li>
-            <li><button type="button">Which countries have the lowest child mortality?</button></li>
-          </ul>
-        </div>
-        <div class="group">
-          <h3>Equity</h3>
-          <ul>
-            <li><button type="button">Which countries have the lowest Gini index?</button></li>
-            <li><button type="button">Which countries have the highest income inequality?</button></li>
-            <li><button type="button">What is the Gini index of Brazil?</button></li>
-            <li><button type="button">What is the Gini index of South Africa?</button></li>
-          </ul>
-        </div>
-        <div class="group">
-          <h3>Education</h3>
-          <ul>
-            <li><button type="button">What is the literacy rate in Pakistan?</button></li>
-            <li><button type="button">What is the literacy rate in India?</button></li>
-            <li><button type="button">Which countries have the highest literacy rate?</button></li>
-            <li><button type="button">What is the school enrollment rate in Kenya?</button></li>
-          </ul>
-        </div>
-        <div class="group">
-          <h3>Environment and technology</h3>
-          <ul>
-            <li><button type="button">What are the CO2 emissions of China?</button></li>
-            <li><button type="button">How has the CO2 emissions of India changed over time?</button></li>
-            <li><button type="button">Which countries emit the most CO2 per capita?</button></li>
-            <li><button type="button">What are the CO2 emissions per capita of Qatar?</button></li>
-            <li><button type="button">What are the greenhouse gas emissions of the United States?</button></li>
-            <li><button type="button">What is the access to electricity in Kenya?</button></li>
-            <li><button type="button">What percentage of people in Japan use the internet?</button></li>
-            <li><button type="button">What percentage of people in Brazil use the internet?</button></li>
-          </ul>
-        </div>
-        <div class="group">
-          <h3>Housing</h3>
-          <ul>
-            <li><button type="button">What is the median home value in San Francisco?</button></li>
-            <li><button type="button">What is the median home value in Seattle?</button></li>
-            <li><button type="button">What is the median rent in New York City?</button></li>
-            <li><button type="button">What is the median rent in Seattle?</button></li>
-          </ul>
-        </div>
-        <div class="group">
-          <h3>Comparisons</h3>
-          <ul>
-            <li><button type="button">Compare life expectancy in the United States and Canada</button></li>
-            <li><button type="button">Compare the population of India and China</button></li>
-          </ul>
-        </div>
-      </div>
-    </section>
-    <div id="out" aria-live="polite"></div>
-    <script>
-    const API = 'https://kg.neuralweb.dev';
-    const out = document.getElementById('out'), q = document.getElementById('q'), go = document.getElementById('go');
-    const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
-    // Mount a chart's frame when it scrolls into view: each one loads its own libraries, so six at once is slow
-    // and the Data Commons components draw only once visible anyway.
-    const seen = 'IntersectionObserver' in window ? new IntersectionObserver((entries, o) => {
-      for (const e of entries) if (e.isIntersecting) { e.target.srcdoc = e.target._doc; o.unobserve(e.target); }
-    }, { rootMargin: '200px' }) : null;
-    function lazy(frame, doc) { if (seen) { frame._doc = doc; seen.observe(frame); } else frame.srcdoc = doc; }
-    const money = x => x < 0.01 ? '$' + x.toFixed(5) : '$' + x.toFixed(3);
-    // The service streams one progress line per step as it happens, then the answer; each line is shown as it arrives.
-    function ask(question) {
-      go.disabled = true;
-      const log = el('div', 'progress'), clock = el('p', 'status', 'Working\u2026 0.0 s');
-      out.replaceChildren(log, clock);
-      const t0 = performance.now(), tick = setInterval(() => { clock.textContent = 'Working\u2026 ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s'; }, 100);
-      const done = () => { clearInterval(tick); es.close(); go.disabled = false; };
-      const es = new EventSource(API + '/api/stream?sources=datacommons&question=' + encodeURIComponent(question));
-      es.onmessage = ev => {
-        const d = JSON.parse(ev.data);
-        if (d.type === 'progress') { log.append(el('p', /^Stage:/.test(d.line) ? 'stage' : 'meta', d.line)); return; }
-        done(); out.replaceChildren();
-        if (d.error) { out.append(el('p', 'err', 'Request failed: ' + d.error)); return; }
-        render(d);
-      };
-      es.onerror = () => { if (es.readyState === EventSource.CLOSED || !go.disabled) return; done(); out.replaceChildren(el('p', 'err', 'Request failed: the connection to the service was lost.')); };
-    }
-    function render(d) {
-      const claims = d.claims || [];
-      if (claims.length) { const c = el('div', 'card'); for (const t of claims) c.append(el('p', 'claim', typeof t === 'string' ? t : JSON.stringify(t))); out.append(c); }
-      else out.append(el('div', 'card', 'No answer: ' + ((d.failures || []).map(f => f.reason).join('; ') || d.status || 'unknown')));
-      for (const t of d.disclosures || []) out.append(el('p', 'meta', typeof t === 'string' ? t : JSON.stringify(t)));
-      // Plugins send their charts as a self-contained document (markup + a JavaScript chunk). It runs in a sandboxed
-      // frame WITHOUT allow-same-origin: the code cannot read this page, its storage or call APIs as it.
-      const grid = el('div', 'charts'), notes = new Set(); let relatedShown = false;
-      for (const v of d.visualizations || []) {
-        if (typeof v.document !== 'string') continue;
-        if (v.related && !relatedShown) { relatedShown = true; grid.append(el('h2', 'related', 'Related from Data Commons')); }
-        const c = el('div', 'chart');
-        if (!v.component && !v.vega_lite) c.append(el('h2', '', v.title || v.kind));   // components and Vega-Lite charts draw their own title
-        const f = el('iframe', 'viz'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('referrerpolicy', 'no-referrer');
-        f.setAttribute('title', v.title || v.kind); f.style.height = (Number.isInteger(v.height) ? v.height : 380) + 'px';
-        lazy(f, v.document); c.append(f); grid.append(c);
-        if (v.note) notes.add(v.note);
-      }
-      if (grid.children.length) out.append(grid);
-      for (const n of notes) out.append(el('p', 'meta', n));
-      const u = d.usage || {}, total = (d.cost_usd || 0) + (u.ard_cost_usd || 0);
-      const rep = el('div', 'report');
-      rep.append(el('p', 'status', 'Status: ' + d.status + (d.seconds ? ' \u00b7 ' + Math.round(d.seconds * 10) / 10 + ' s' : '') +
-        ' \u00b7 ' + (u.model_calls || 0) + ' model calls \u00b7 ' + ((u.input_tokens || 0) + (u.output_tokens || 0)).toLocaleString() + ' tokens' +
-        (u.ard_searches ? ' \u00b7 ' + u.ard_searches + ' ARD searches' : '') + ' \u00b7 ' + money(total)));
-      for (const st of d.stages || [])
-        rep.append(el('p', 'meta', '\u2713 ' + st.label + (st.reading > 1 ? ' (reading ' + st.reading + ')' : '') + ' \u00b7 ' + (st.seconds != null ? st.seconds.toFixed(1) + ' s' : '') +
-          ' \u00b7 ' + st.model_calls + ' calls \u00b7 ' + (st.input_tokens + st.output_tokens).toLocaleString() + ' tokens \u00b7 ' + money((st.cost_usd || 0) + (st.ard_cost_usd || 0))));
-      out.append(rep);
-    }
-    document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); if (q.value.trim()) ask(q.value.trim()); });
-    document.querySelectorAll('.examples button, .samples button').forEach(b => b.addEventListener('click', () => { q.value = b.textContent; ask(q.value); }));
-    </script>
-  </main>
+  <!-- The Neural DB page itself, unchanged and served from kg.neuralweb.dev; the only difference is the restriction in the address. -->
+  <div class="crumb"><a href="../">&larr; Data Commons</a></div>
+  <iframe id="neuraldb" title="Neural DB over Data Commons" src="https://kg.neuralweb.dev/?sources=datacommons"></iframe>
+  <script>
+    // The framed page reports how tall its content is, so this page scrolls instead of the frame.
+    addEventListener('message', e => {
+      if (e.origin !== 'https://kg.neuralweb.dev' || !e.data || e.data.type !== 'neuralkg-height') return;
+      if (Number.isFinite(e.data.height)) document.getElementById('neuraldb').style.height = Math.ceil(e.data.height) + 'px';
+    });
+  </script>
 </body>
 </html>
