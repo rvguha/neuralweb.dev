@@ -68,7 +68,7 @@
     }, { rootMargin: '200px' }) : null;
     function lazy(frame, doc) { if (seen) { frame._doc = doc; seen.observe(frame); } else frame.srcdoc = doc; }
     async function ask(question) {
-      out.replaceChildren(el('p', 'status', 'Looking it up\u2026 this can take 10\u201330 seconds.')); go.disabled = true;
+      out.replaceChildren(el('p', 'status', 'Looking it up\u2026')); go.disabled = true;
       try {
         const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question, sources: ['datacommons'] }) });
