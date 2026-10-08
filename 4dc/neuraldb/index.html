@@ -20,17 +20,12 @@
     button { padding: 12px 18px; font: inherit; font-weight: 600; color: #fff; background: var(--accent); border: 0; border-radius: 10px; cursor: pointer; }
     button:disabled { opacity: .6; cursor: wait; }
     .samples { margin: 6px 0 18px; }
-    .samples h2 { font-size: 1.02rem; margin: 0 0 2px; }
-    .samples .meta { margin: 0 0 8px; }
-    .samples ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .samples h2 { font-size: 1.02rem; margin: 0 0 6px; }
+    .samples .groups { columns: 2 340px; column-gap: 28px; }
+    .samples .group { break-inside: avoid; margin: 0 0 14px; }
+    .samples h3 { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 4px; }
+    .samples ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
     .samples button { all: unset; cursor: pointer; color: var(--accent); text-decoration: underline; }
-    .samples .cat { color: var(--muted); font-size: .78rem; border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; margin-left: 6px; white-space: nowrap; }
-    .examples { margin: 0 0 24px; font-size: .9rem; color: var(--muted); }
-    .examples button { all: unset; cursor: pointer; color: var(--accent); margin-right: 12px; text-decoration: underline; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
-    .card h2 { margin: 0 0 4px; font-size: 1.05rem; } .card p { margin: 4px 0; }
-    .progress p { margin: 2px 0; }
-    .progress .stage { margin: 8px 0 2px; font-weight: 600; }
     .meta, .status { color: var(--muted); font-size: .88rem; }
     .tag { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; color: var(--muted); }
     .claim { font-size: 1.05rem; }
@@ -50,12 +45,113 @@
     <form id="f"><input type="text" id="q" maxlength="400" placeholder="e.g. What is the unemployment rate in Texas?" autofocus aria-label="Question"><button id="go">Ask</button></form>
     <section class="samples" aria-labelledby="samples-title">
       <h2 id="samples-title">Sample questions</h2>
-      <ul>
-      <li><button type="button">What is the GDP of New Zealand?</button> <span class="cat">Economics</span></li>
-      <li><button type="button">Which countries have the lowest Gini index?</button> <span class="cat">Equity</span></li>
-      <li><button type="button">How does life expectancy vary across countries in Africa?</button> <span class="cat">Health</span></li>
-      <li><button type="button">Which nations currently hold the highest ranking for gross domestic product?</button> <span class="cat">Explore page</span></li>
-      </ul>
+      <div class="groups">
+        <div class="group">
+          <h3>Economy</h3>
+          <ul>
+            <li><button type="button">What is the GDP of New Zealand?</button></li>
+            <li><button type="button">What is India's GDP?</button></li>
+            <li><button type="button">What is the GDP of Brazil?</button></li>
+            <li><button type="button">What is the GDP per capita of Switzerland?</button></li>
+            <li><button type="button">What is the GDP per capita of Japan?</button></li>
+            <li><button type="button">Which countries have the highest GDP per capita?</button></li>
+            <li><button type="button">Which nations currently hold the highest ranking for gross domestic product?</button></li>
+            <li><button type="button">What is the inflation rate in Argentina?</button></li>
+            <li><button type="button">What is the inflation rate in Turkey?</button></li>
+            <li><button type="button">Which countries have the highest inflation rate?</button></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h3>Work and income</h3>
+          <ul>
+            <li><button type="button">What is the unemployment rate in Texas?</button></li>
+            <li><button type="button">What is the unemployment rate in Germany?</button></li>
+            <li><button type="button">How has the unemployment rate in Spain changed over time?</button></li>
+            <li><button type="button">What is the median household income in California?</button></li>
+            <li><button type="button">What is the median household income in New York?</button></li>
+            <li><button type="button">What is the labor force participation rate in Germany?</button></li>
+            <li><button type="button">What is the labor force participation rate in Japan?</button></li>
+            <li><button type="button">What is the female labor force participation rate in Saudi Arabia?</button></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h3>Population</h3>
+          <ul>
+            <li><button type="button">What is the population of France?</button></li>
+            <li><button type="button">What is the population of Texas?</button></li>
+            <li><button type="button">What is the population of Canada?</button></li>
+            <li><button type="button">What is the population of Ohio?</button></li>
+            <li><button type="button">What is the population of Nigeria?</button></li>
+            <li><button type="button">What is the population of Los Angeles County?</button></li>
+            <li><button type="button">How has the population of China changed over time?</button></li>
+            <li><button type="button">Which countries have the largest population?</button></li>
+            <li><button type="button">Which US states have the smallest population?</button></li>
+            <li><button type="button">What is the urban population share of Brazil?</button></li>
+            <li><button type="button">What is the urban population share of Japan?</button></li>
+            <li><button type="button">What is the fertility rate in Niger?</button></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h3>Health</h3>
+          <ul>
+            <li><button type="button">What is the life expectancy in Japan?</button></li>
+            <li><button type="button">What is the life expectancy in Brazil?</button></li>
+            <li><button type="button">How does life expectancy vary across countries in Africa?</button></li>
+            <li><button type="button">Which countries have the highest life expectancy?</button></li>
+            <li><button type="button">What is the infant mortality rate in India?</button></li>
+            <li><button type="button">What is the infant mortality rate in Nigeria?</button></li>
+            <li><button type="button">What is the maternal mortality ratio in Nigeria?</button></li>
+            <li><button type="button">Which countries have the lowest child mortality?</button></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h3>Equity</h3>
+          <ul>
+            <li><button type="button">Which countries have the lowest Gini index?</button></li>
+            <li><button type="button">Which countries have the highest income inequality?</button></li>
+            <li><button type="button">What is the Gini index of Brazil?</button></li>
+            <li><button type="button">What is the Gini index of South Africa?</button></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h3>Education</h3>
+          <ul>
+            <li><button type="button">What is the literacy rate in Pakistan?</button></li>
+            <li><button type="button">What is the literacy rate in India?</button></li>
+            <li><button type="button">Which countries have the highest literacy rate?</button></li>
+            <li><button type="button">What is the school enrollment rate in Kenya?</button></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h3>Environment and technology</h3>
+          <ul>
+            <li><button type="button">What are the CO2 emissions of China?</button></li>
+            <li><button type="button">How has the CO2 emissions of India changed over time?</button></li>
+            <li><button type="button">Which countries emit the most CO2 per capita?</button></li>
+            <li><button type="button">What are the CO2 emissions per capita of Qatar?</button></li>
+            <li><button type="button">What are the greenhouse gas emissions of the United States?</button></li>
+            <li><button type="button">What is the access to electricity in Kenya?</button></li>
+            <li><button type="button">What percentage of people in Japan use the internet?</button></li>
+            <li><button type="button">What percentage of people in Brazil use the internet?</button></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h3>Housing</h3>
+          <ul>
+            <li><button type="button">What is the median home value in San Francisco?</button></li>
+            <li><button type="button">What is the median home value in Seattle?</button></li>
+            <li><button type="button">What is the median rent in New York City?</button></li>
+            <li><button type="button">What is the median rent in Seattle?</button></li>
+          </ul>
+        </div>
+        <div class="group">
+          <h3>Comparisons</h3>
+          <ul>
+            <li><button type="button">Compare life expectancy in the United States and Canada</button></li>
+            <li><button type="button">Compare the population of India and China</button></li>
+          </ul>
+        </div>
+      </div>
     </section>
     <div id="out" aria-live="polite"></div>
     <script>
