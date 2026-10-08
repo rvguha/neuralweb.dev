@@ -29,6 +29,8 @@
     .examples button { all: unset; cursor: pointer; color: var(--accent); margin-right: 12px; text-decoration: underline; }
     .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
     .card h2 { margin: 0 0 4px; font-size: 1.05rem; } .card p { margin: 4px 0; }
+    .progress p { margin: 2px 0; }
+    .progress .stage { margin: 8px 0 2px; font-weight: 600; }
     .meta, .status { color: var(--muted); font-size: .88rem; }
     .tag { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; color: var(--muted); }
     .claim { font-size: 1.05rem; }
@@ -57,7 +59,7 @@
     </section>
     <div id="out" aria-live="polite"></div>
     <script>
-    const API = 'https://kg.neuralweb.dev/ask';
+    const API = 'https://kg.neuralweb.dev';
     const out = document.getElementById('out'), q = document.getElementById('q'), go = document.getElementById('go');
     const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
     // Mount a chart's frame when it scrolls into view: each one loads its own libraries, so six at once is slow
@@ -66,36 +68,53 @@
       for (const e of entries) if (e.isIntersecting) { e.target.srcdoc = e.target._doc; o.unobserve(e.target); }
     }, { rootMargin: '200px' }) : null;
     function lazy(frame, doc) { if (seen) { frame._doc = doc; seen.observe(frame); } else frame.srcdoc = doc; }
-    async function ask(question) {
-      out.replaceChildren(el('p', 'status', 'Looking it up\u2026')); go.disabled = true;
-      try {
-        const r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, sources: ['datacommons'] }) });
-        const d = await r.json();
-        if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
-        out.replaceChildren();
-        const claims = d.claims || [];
-        if (claims.length) { const c = el('div', 'card'); for (const t of claims) c.append(el('p', 'claim', typeof t === 'string' ? t : JSON.stringify(t))); out.append(c); }
-        else out.append(el('div', 'card', 'No answer: ' + ((d.failures || []).map(f => f.reason).join('; ') || d.status || 'unknown')));
-        for (const t of d.disclosures || []) out.append(el('p', 'meta', typeof t === 'string' ? t : JSON.stringify(t)));
-        // Plugins send their charts as a self-contained document (markup + a JavaScript chunk). It runs in a sandboxed
-        // frame WITHOUT allow-same-origin: the code cannot read this page, its storage or call APIs as it.
-        const grid = el('div', 'charts'), notes = new Set(); let relatedShown = false;
-        for (const v of d.visualizations || []) {
-          if (typeof v.document !== 'string') continue;
-          if (v.related && !relatedShown) { relatedShown = true; grid.append(el('h2', 'related', 'Related from Data Commons')); }
-          const c = el('div', 'chart');
-          if (!v.component && !v.vega_lite) c.append(el('h2', '', v.title || v.kind));   // components and Vega-Lite charts draw their own title
-          const f = el('iframe', 'viz'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('referrerpolicy', 'no-referrer');
-          f.setAttribute('title', v.title || v.kind); f.style.height = (Number.isInteger(v.height) ? v.height : 380) + 'px';
-          lazy(f, v.document); c.append(f); grid.append(c);
-          if (v.note) notes.add(v.note);
-        }
-        if (grid.children.length) out.append(grid);
-        for (const n of notes) out.append(el('p', 'meta', n));
-        out.append(el('p', 'status', 'Status: ' + d.status + (d.seconds ? ' \u00b7 ' + Math.round(d.seconds) + ' s' : '')));
-      } catch (err) { out.replaceChildren(el('p', 'err', 'Request failed: ' + err.message)); }
-      go.disabled = false;
+    const money = x => x < 0.01 ? '$' + x.toFixed(5) : '$' + x.toFixed(3);
+    // The service streams one progress line per step as it happens, then the answer; each line is shown as it arrives.
+    function ask(question) {
+      go.disabled = true;
+      const log = el('div', 'progress'), clock = el('p', 'status', 'Working\u2026 0.0 s');
+      out.replaceChildren(log, clock);
+      const t0 = performance.now(), tick = setInterval(() => { clock.textContent = 'Working\u2026 ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s'; }, 100);
+      const done = () => { clearInterval(tick); es.close(); go.disabled = false; };
+      const es = new EventSource(API + '/api/stream?question=' + encodeURIComponent(question));
+      es.onmessage = ev => {
+        const d = JSON.parse(ev.data);
+        if (d.type === 'progress') { log.append(el('p', /^Stage:/.test(d.line) ? 'stage' : 'meta', d.line)); return; }
+        done(); out.replaceChildren();
+        if (d.error) { out.append(el('p', 'err', 'Request failed: ' + d.error)); return; }
+        render(d);
+      };
+      es.onerror = () => { if (es.readyState === EventSource.CLOSED || !go.disabled) return; done(); out.replaceChildren(el('p', 'err', 'Request failed: the connection to the service was lost.')); };
+    }
+    function render(d) {
+      const claims = d.claims || [];
+      if (claims.length) { const c = el('div', 'card'); for (const t of claims) c.append(el('p', 'claim', typeof t === 'string' ? t : JSON.stringify(t))); out.append(c); }
+      else out.append(el('div', 'card', 'No answer: ' + ((d.failures || []).map(f => f.reason).join('; ') || d.status || 'unknown')));
+      for (const t of d.disclosures || []) out.append(el('p', 'meta', typeof t === 'string' ? t : JSON.stringify(t)));
+      // Plugins send their charts as a self-contained document (markup + a JavaScript chunk). It runs in a sandboxed
+      // frame WITHOUT allow-same-origin: the code cannot read this page, its storage or call APIs as it.
+      const grid = el('div', 'charts'), notes = new Set(); let relatedShown = false;
+      for (const v of d.visualizations || []) {
+        if (typeof v.document !== 'string') continue;
+        if (v.related && !relatedShown) { relatedShown = true; grid.append(el('h2', 'related', 'Related from Data Commons')); }
+        const c = el('div', 'chart');
+        if (!v.component && !v.vega_lite) c.append(el('h2', '', v.title || v.kind));   // components and Vega-Lite charts draw their own title
+        const f = el('iframe', 'viz'); f.setAttribute('sandbox', 'allow-scripts'); f.setAttribute('referrerpolicy', 'no-referrer');
+        f.setAttribute('title', v.title || v.kind); f.style.height = (Number.isInteger(v.height) ? v.height : 380) + 'px';
+        lazy(f, v.document); c.append(f); grid.append(c);
+        if (v.note) notes.add(v.note);
+      }
+      if (grid.children.length) out.append(grid);
+      for (const n of notes) out.append(el('p', 'meta', n));
+      const u = d.usage || {}, total = (d.cost_usd || 0) + (u.ard_cost_usd || 0);
+      const rep = el('div', 'report');
+      rep.append(el('p', 'status', 'Status: ' + d.status + (d.seconds ? ' \u00b7 ' + Math.round(d.seconds * 10) / 10 + ' s' : '') +
+        ' \u00b7 ' + (u.model_calls || 0) + ' model calls \u00b7 ' + ((u.input_tokens || 0) + (u.output_tokens || 0)).toLocaleString() + ' tokens' +
+        (u.ard_searches ? ' \u00b7 ' + u.ard_searches + ' ARD searches' : '') + ' \u00b7 ' + money(total)));
+      for (const st of d.stages || [])
+        rep.append(el('p', 'meta', '\u2713 ' + st.label + (st.reading > 1 ? ' (reading ' + st.reading + ')' : '') + ' \u00b7 ' + (st.seconds != null ? st.seconds.toFixed(1) + ' s' : '') +
+          ' \u00b7 ' + st.model_calls + ' calls \u00b7 ' + (st.input_tokens + st.output_tokens).toLocaleString() + ' tokens \u00b7 ' + money((st.cost_usd || 0) + (st.ard_cost_usd || 0))));
+      out.append(rep);
     }
     document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); if (q.value.trim()) ask(q.value.trim()); });
     document.querySelectorAll('.examples button, .samples button').forEach(b => b.addEventListener('click', () => { q.value = b.textContent; ask(q.value); }));
