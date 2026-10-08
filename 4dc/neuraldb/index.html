@@ -76,7 +76,7 @@
       out.replaceChildren(log, clock);
       const t0 = performance.now(), tick = setInterval(() => { clock.textContent = 'Working\u2026 ' + ((performance.now() - t0) / 1000).toFixed(1) + ' s'; }, 100);
       const done = () => { clearInterval(tick); es.close(); go.disabled = false; };
-      const es = new EventSource(API + '/api/stream?question=' + encodeURIComponent(question));
+      const es = new EventSource(API + '/api/stream?sources=datacommons&question=' + encodeURIComponent(question));
       es.onmessage = ev => {
         const d = JSON.parse(ev.data);
         if (d.type === 'progress') { log.append(el('p', /^Stage:/.test(d.line) ? 'stage' : 'meta', d.line)); return; }
