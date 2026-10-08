@@ -19,6 +19,12 @@
     input[type=text] { flex: 1; min-width: 0; padding: 12px 14px; font: inherit; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
     button { padding: 12px 18px; font: inherit; font-weight: 600; color: #fff; background: var(--accent); border: 0; border-radius: 10px; cursor: pointer; }
     button:disabled { opacity: .6; cursor: wait; }
+    .samples { margin: 6px 0 18px; }
+    .samples h2 { font-size: 1.02rem; margin: 0 0 2px; }
+    .samples .meta { margin: 0 0 8px; }
+    .samples ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .samples button { all: unset; cursor: pointer; color: var(--accent); text-decoration: underline; }
+    .samples .cat { color: var(--muted); font-size: .78rem; border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; margin-left: 6px; white-space: nowrap; }
     .examples { margin: 0 0 24px; font-size: .9rem; color: var(--muted); }
     .examples button { all: unset; cursor: pointer; color: var(--accent); margin-right: 12px; text-decoration: underline; }
     .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
@@ -40,7 +46,17 @@
     <h1>Neural DB over Data Commons</h1>
     <p class="lede">Ask a statistics question in plain English. Answers come live from Data Commons through Neural DB&rsquo;s Data Commons plugin, with the period of each value.</p>
     <form id="f"><input type="text" id="q" maxlength="400" placeholder="e.g. What is the unemployment rate in Texas?" autofocus aria-label="Question"><button id="go">Ask</button></form>
-    <p class="examples">Try: <button type="button">What is the unemployment rate in Texas?</button><button type="button">Median household income in California</button><button type="button">Life expectancy in Japan</button></p>
+    <section class="samples" aria-labelledby="samples-title">
+      <h2 id="samples-title">Sample questions from <a href="https://datacommons.org/">datacommons.org</a></h2>
+      <p class="meta">The ones on its home and explore pages that we can answer reliably.</p>
+      <ul>
+      <li><button type="button">What is the GDP of New Zealand?</button> <span class="cat">Economics</span></li>
+      <li><button type="button">Which countries have the lowest Gini index?</button> <span class="cat">Equity</span></li>
+      <li><button type="button">How does life expectancy vary across countries in Africa?</button> <span class="cat">Health</span></li>
+      <li><button type="button">Which nations currently hold the highest ranking for gross domestic product?</button> <span class="cat">Explore page</span></li>
+      </ul>
+    </section>
+    <p class="examples">Also try: <button type="button">What is the unemployment rate in Texas?</button><button type="button">Median household income in California</button><button type="button">Life expectancy in Japan</button></p>
     <div id="out" aria-live="polite"></div>
     <script>
     const API = 'https://kg.neuralweb.dev/ask';
@@ -84,7 +100,7 @@
       go.disabled = false;
     }
     document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); if (q.value.trim()) ask(q.value.trim()); });
-    document.querySelectorAll('.examples button').forEach(b => b.addEventListener('click', () => { q.value = b.textContent; ask(q.value); }));
+    document.querySelectorAll('.examples button, .samples button').forEach(b => b.addEventListener('click', () => { q.value = b.textContent; ask(q.value); }));
     </script>
   </main>
 </body>
