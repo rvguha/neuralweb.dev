@@ -101,6 +101,8 @@ body.sidebar-collapsed .sidebar { padding-inline: 0; border-right: none; visibil
   background: #f2f4f9; border-right: 1px solid #dfe4ef; }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; }
 .sidebar-head h2 { margin: 0; font-size: .95rem; color: #2b344a; }
+/* The page-wide `button { min-width: 76px }` is for the Ask button; small icon buttons must keep their own size. */
+.icon, .turn-delete, .conversation-delete { min-width: 0; }
 .icon { width: 30px; height: 30px; padding: 0; font-size: 1rem; line-height: 1; color: #3653ae;
   background: white; border: 1px solid #d4dbea; border-radius: 7px; cursor: pointer; }
 .icon:hover { border-color: #aebce1; }
@@ -132,7 +134,7 @@ body.sidebar-collapsed .sidebar { padding-inline: 0; border-right: none; visibil
    a centred 760px column with a 72px top margin, which in a full-height shell
    squeezes the thread and pushes the top bar -- and the query cost on it -- off
    the screen. */
-main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto;
   width: auto; max-width: none; min-width: 0; height: 100vh; height: var(--app-height, 100dvh); margin: 0; }
 .topbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 10px 20px;
   background: white; border-bottom: 1px solid #e3e7f1; }
