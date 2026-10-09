@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life of a query: the ARD agent finder</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Newsreader:wght@500;600&display=swap">
+<style>
+:root { color-scheme: light dark; --bg:#f6f7fb; --surface:#fff; --ink:#1d2433; --muted:#52607d; --accent:#2f54c4; --line:#d9dee7; --code:#eef1f7;
+  --display:"Newsreader","Iowan Old Style",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+@media (prefers-color-scheme: dark) { :root { --bg:#10141b; --surface:#171c26; --ink:#e6eaf2; --muted:#98a2b6; --accent:#8fa9ff; --line:#2a3242; --code:#222a39; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.65 var(--body); }
+.wrap { max-width:860px; margin:0 auto; padding-inline:16px; padding-block:28px 72px; }
+nav.top { font:13px var(--mono); display:flex; gap:6px 16px; flex-wrap:wrap; margin-bottom:22px; color:var(--muted); }
+nav.top a { color:var(--accent); text-decoration:none; } nav.top a:hover { text-decoration:underline; } nav.top .here { color:var(--ink); font-weight:600; }
+h1 { font:600 clamp(1.8rem,4vw,2.4rem)/1.15 var(--display); letter-spacing:-.01em; margin:0 0 .6em; text-wrap:balance; }
+h2 { font:600 1.55rem/1.25 var(--display); margin:2.2em 0 .5em; padding-top:.4em; border-top:1px solid var(--line); }
+h3 { font:600 1.15rem/1.3 var(--display); margin:1.8em 0 .4em; }
+p, li { max-width:72ch; } a { color:var(--accent); }
+code { font:.88em var(--mono); background:var(--code); padding:.12em .36em; border-radius:4px; overflow-wrap:anywhere; }
+pre { background:var(--code); padding:14px 16px; border-radius:8px; overflow-x:auto; line-height:1.45; } pre code { background:none; padding:0; overflow-wrap:normal; }
+pre.mermaid { background:var(--surface); border:1px solid var(--line); text-align:center; }
+.tablewrap { overflow-x:auto; margin:1em 0; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+table { border-collapse:collapse; width:100%; font-size:.92rem; min-width:520px; }
+th { text-align:left; font:600 12px var(--mono); text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+td { padding:8px 12px; border-top:1px solid var(--line); vertical-align:top; } tr:first-child td { border-top:0; }
+em { color:var(--muted); } li { margin:.25em 0; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:24px; }
+.card { display:block; padding:16px 18px; background:var(--surface); border:1px solid var(--line); border-radius:10px; text-decoration:none; color:inherit; }
+.card:hover { border-color:var(--accent); } .card b { color:var(--accent); font:600 1.1rem var(--display); display:block; margin-bottom:4px; }
+.card span { color:var(--muted); font-size:.92rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="top"><a href="/design/">Design documents</a> <a href="/design/neural-db/">Neural DB</a> <span class="here">ARD finder</span> <a href="/design/qdrss/">Query-defined RSS</a> <a href="/design/nlweb/">NLWeb samples</a></nav>
+<h1>Life of a query: the ARD agent finder</h1>
+<p><em>Design document, 2026-10-09. Covers <code>ard-finder</code> as deployed in revision <code>ard-00049-ciq</code> (index of 24,827 entries). Every claim carries a file and line reference; numbers marked "measured" were read from the running service the same day. Sibling documents: <a href="/design/neural-db/">NeuralKG2</a> (the caller that depends on ARD most), <a href="/design/qdrss/">QDRSS</a> (QDRSS), <a href="/design/nlweb/">NLWeb samples</a> (the NLWeb samples).</em></p>
+<h2>0. How to read this</h2>
+<p>ARD (the <strong>A</strong>gent <strong>R</strong>esource <strong>D</strong>iscovery finder, at <code>ard.neuralweb.dev</code>) answers one question: <em>which published tables describe this quantity?</em> You give it a description ("median household income", "gdp india") and it returns the OKF table documents that describe it, ranked, each naming a variable, a source and how to ask for it. It never fetches data itself.</p>
+<p>Callers: NeuralKG2 (one search per piece of data a question needs, plus exact <code>/variable</code> and <code>/variables</code> lookups), the ARD browser page at <code>neuralweb.dev/4dc/ard/</code>, and any MCP client (<code>POST /mcp</code>).</p>
+<h3>Words used throughout</h3>
+<ul>
+<li><strong>Entry / document / leaf</strong>: one OKF markdown file describing one published table or variable from one source. For Data Commons, one <code>(variable, source)</code> pair.</li>
+<li><strong>Source family</strong>: the publisher a document belongs to (<code>datacommons</code>, <code>sec-edgar</code>, <code>census</code>, <code>worldbank</code>, ...). The five BigQuery directories collapse into one family, <code>bigquery</code>.</li>
+<li><strong>Phrasing</strong>: one text the caller asks about. A request carries up to 4; ARD adds a place-stripped version of each.</li>
+<li><strong>Pool / head / slice</strong>: the candidates gathered by embedding similarity, and the first part of them that the model actually sees.</li>
+<li><strong>Rerank</strong>: scoring candidates 0 to 100 with a model. The only model judgment on the search path besides the embedding.</li>
+<li><strong>Family</strong> (of a Data Commons variable): <code>(populationType, measuredProperty, statType)</code>, with its <strong>constraints</strong> (the dimensions it is split by: age, race, gender...). Used by <code>/variables</code>.</li>
+</ul>
+<h2>1. Where ARD sits</h2>
+<pre class="mermaid">flowchart LR
+  NK[NeuralKG2&lt;br/&gt;catalog client] --&gt;|POST /search&lt;br/&gt;GET /variable, /variables| ARD[ARD finder&lt;br/&gt;ard.neuralweb.dev]
+  PG[ARD page&lt;br/&gt;neuralweb.dev/4dc/ard] --&gt;|POST /search| ARD
+  MCP[MCP clients] --&gt;|POST /mcp, /ask| ARD
+  ARD --&gt; IDX[(Index in memory&lt;br/&gt;24,827 vectors + metadata)]
+  ARD --&gt; LEAF[(Leaf files on disk&lt;br/&gt;OKF markdown)]
+  ARD &lt;--&gt;|embed query, rerank| OR[(OpenRouter)]
+</pre>
+<p>The service is one Starlette app on Cloud Run (<code>ard</code>, <code>us-central1</code>). The index and the leaf files ship inside the image; there is no database. Models: embeddings <code>openai/text-embedding-3-small</code> (1536 dimensions), rerank <code>openai/gpt-oss-20b</code>, both through OpenRouter.</p>
+<h2>2. The life of a search</h2>
+<p>ARD answers one question: <em>which published tables describe this quantity?</em> It never fetches data. Its output is a ranked list of OKF table documents, each naming a variable, a source, and how to ask for it. Source: <code>ard-finder</code> (<code>agent_finder.py</code>, <code>registry/index.py</code>, <code>registry/places.py</code>, <code>filters.py</code>, <code>llm.py</code>).</p>
+<h3>2.1 What exists before any query (the build)</h3>
+<p>The index is built offline by <code>registry/index.py:build</code> (207-304) and shipped inside the image as <code>registry/current/</code>.</p>
+<ol>
+<li><strong>Collect</strong> every <code>*.md</code> under <code>sources/</code> and <code>corpora/gcp-bigquery/okf/</code> whose front matter has <code>representativeQueries</code> (<code>_collect_docs</code>, 155-198). These leaves are written by the <code>tools/gen_*_okf.py</code> generators from each publisher's catalog (Data Commons variables, SEC filings, World Bank indicators, Census tables and so on).</li>
+<li><strong>Embed</strong> one text per entry (<code>index_text</code>, 117-128): title, all representative queries, "Describes {scope}" (the source's entity type), then the full description, joined with <code>". "</code>. Model <code>openai/text-embedding-3-small</code>, 1536 dimensions, 8000-character input cap.</li>
+<li><strong>Publish</strong> <code>vectors.npy</code> (float16, 76 MB on disk, about 150 MB as float32 in memory), <code>meta.json</code> (26.6 MB) and <code>manifest.json</code> to <code>registry/current</code>. Vectors are reused when an entry's <code>sig</code> (md5 of text plus model) is unchanged, so a rebuild embeds only what changed. Batches of 96 are checkpointed.</li>
+</ol>
+<p>Size on 2026-10-09: <strong>24,827 entries</strong>. Data Commons 11,595; SEC EDGAR 8,096; Census 2,000; World Bank 1,498; UN SDG 713; BigQuery public 356 and marketplace 240; Treasury 186; nonprofit 990 57; CDC PLACES 40; about 40 others.</p>
+<p>At server start (<code>agent_finder.py:841-853</code>) the service verifies the release is current, loads the vectors and metadata (<code>index._store</code>), projects every row into an ARD entry (<code>_catalog</code>), and builds two exact-lookup tables from the Data Commons leaves (<code>_variable_index</code>, 631-653): <code>variable -&gt; leaf paths</code> and <code>variable -&gt; family</code> where a family is <code>(populationType, measuredProperty, statType, constraints)</code>. Those two tables are what <code>/variable</code> and <code>/variables</code> read. If no model credentials are present, startup fails (<code>llm.py:47</code>).</p>
+<h3>2.2 Endpoints</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Purpose</th>
+<th>Model involved</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /search</code></td>
+<td>the main path, below</td>
+<td>embedding + rerank</td>
+</tr>
+<tr>
+<td><code>GET\|POST /ask</code>, <code>POST /mcp</code></td>
+<td>the same search from plain text or JSON-RPC; 400-character query cap</td>
+<td>same</td>
+</tr>
+<tr>
+<td><code>GET /variable?id=</code></td>
+<td>every source's document for one published variable, widest coverage first (default 20, max 50)</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>GET /variables?populationType&amp;measuredProperty&amp;statType[&amp;constraints=a,b]</code></td>
+<td>the dimensions a quantity is split by, or the variables split by exactly those dimensions (default 200, max 500)</td>
+<td>none</td>
+</tr>
+<tr>
+<td><code>GET /agents</code>, <code>GET /agents/entry</code>, <code>POST /explore</code>, <code>/.well-known/ard.json</code>, <code>/health</code>, <code>/stats</code></td>
+<td>browsing, facets, manifest, liveness</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<p>There is no authentication. CORS allows any origin. Body limit 64 KB (413 above). <code>/search</code> has a per-IP daily quota of 10,000 held in process memory (429 with <code>Retry-After</code>); the quota is charged before the request is validated.</p>
+<h3>2.3 A <code>/search</code> request, step by step</h3>
+<p>NeuralKG2 sends (<code>neuralkg2/catalog.py:160-170</code>):</p>
+<pre><code class="language-json">{&quot;query&quot;: {&quot;text&quot;: &quot;Find tables for: gdp india. Background only, not the search: the user's full question is \&quot;What is India's GDP?\&quot;.&quot;,
+           &quot;texts&quot;: [&quot;gdp india&quot;, &quot;What is India's GDP?&quot;, &quot;gdp&quot;]},
+ &quot;pageSize&quot;: 10, &quot;rerank&quot;: true, &quot;sources&quot;: [&quot;datacommons&quot;]}
+</code></pre>
+<p><strong>Step 1: validate</strong> (<code>agent_finder.py:766-793</code>). <code>query.text</code> must be a non-empty string; <code>query.texts</code> a list of 1 to 4 non-empty strings (default <code>[text]</code>); <code>pageSize</code> clamped to 1-100; <code>sources</code>/<code>excludeSources</code> lists of at most 50 names that must exist (400 with the valid names otherwise); <code>query.filter</code> may use <code>publisher</code>, <code>type</code>, <code>tags</code> (other keys are reported back in <code>filter.ignored</code>). Values in one key are ORed, different keys ANDed (<code>filters.py</code>).</p>
+<p><strong>Step 2: phrasings</strong> (<code>index.py:687-698</code>). The caller's <code>texts</code> come first. For each, <code>places.strip</code> (<code>places.py:98-101</code>) adds a version with places removed ("gdp india" becomes "gdp") from a gazetteer of US states, countries, large cities, demonyms and "X County"-style patterns. Reason: documents describe measures, not places, and a place in the query drags in any document that merely mentions it. At most 8 phrasings result. No model rewrites the query.</p>
+<p><strong>Step 3: embed and score</strong> (<code>search_many_async</code>, 797-857). All phrasings are embedded in one call and L2-normalised. Each entry's score is its <strong>maximum</strong> cosine similarity over the phrasings (<code>sims = vecs @ q.T</code>, 24,827 rows, numpy). Entries are walked in descending score, the request's filters applied, until about 150 (<code>ARD_PREFILTER_MAX</code>) are collected. Each carries <code>embed_score = round(score*100, 1)</code>.</p>
+<p><strong>Step 4: shape the pool before the model sees it.</strong> This is the part that decides recall.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Constant</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Adaptive slice</td>
+<td><code>PREFILTER_SLICE</code> 30, band 5 points, cap 150</td>
+<td>the head is at least 30 and as many as sit within 5 points of the top score</td>
+</tr>
+<tr>
+<td>Examined cap</td>
+<td><code>PREFILTER_EXAMINED_MAX</code> 120</td>
+<td>never rerank more than 120</td>
+</tr>
+<tr>
+<td>Each phrasing's best</td>
+<td><code>PER_PHRASING</code> 6</td>
+<td>each phrasing's six best tables are promoted into the head if they were below the cut</td>
+</tr>
+<tr>
+<td>Each source's best</td>
+<td><code>PER_SOURCE_POOL</code> 3</td>
+<td>every source family gets at least its three best into the head</td>
+</tr>
+</tbody>
+</table></div>
+<p>The per-phrasing rule exists because a place-bearing phrasing and the stripped phrasing find different tables; keeping each phrasing's best means a table that either finds survives. The per-source rule exists so a large source (Data Commons has 11,595 entries) cannot push every other source out of the head.</p>
+<p><strong>Step 5: rerank with a model</strong> (<code>_rerank_by_source</code>, 860-890). Candidates are grouped by source family in order of first appearance; the first <strong>5</strong> families are scored, one model call each, in parallel. The first group is scored alone; the other four are prefixed with the first group's top 2 candidates as anchors (their scores are discarded) so a weaker source is not graded on a curve.</p>
+<ul>
+<li>Prompt (<code>_rerank_messages</code>, 474-495): judge each numbered card by title, scope and example questions; prefer recall, keep siblings and alternative definitions; return <code>{"ranked":[{"i":n,"score":0-100}]}</code>; score every candidate; never return an empty list.</li>
+<li>Card (<code>_card</code>, 418-434): title, <code>covers: &lt;scope&gt;</code>, up to 6 <code>people ask:</code> queries. The description is left out unless <code>ARD_RERANK_DESC=1</code>.</li>
+<li>Model <code>RERANK_MODEL</code>, <code>openai/gpt-oss-20b</code> in production. Temperature 0, JSON mode, reasoning effort <code>low</code>, provider sort <code>throughput</code>.</li>
+<li>Output budget (<code>_rerank_budget</code>, 403-415): <code>max(400, 16*n + 300) + 1500</code> tokens.</li>
+<li>Retries (<code>llm.py:431-489</code>): up to 4 attempts on 408/409/429/5xx with <code>Retry-After</code> or <code>min(30, 2**attempt)</code> back-off; an <strong>empty completion retries with <code>max_tokens</code> doubled</strong>, up to 8000 (this was the cause of the slow "choosing tables" step fixed on 2026-10-08, when a reasoning model spent its whole budget thinking). Per call 120 s; the whole query has a 180 s deadline.</li>
+<li>Parse (<code>_ranked_candidates</code>, 498-513): only the first <code>k</code> items; an item needs an integer <code>i</code> in range and a numeric <code>score</code>; bad items are skipped. A result is eligible when <code>score &gt;= 50</code> (<code>ARD_MIN_RERANK_SCORE</code>).</li>
+</ul>
+<p><strong>Step 6: merge</strong> (<code>_source_first</code>, 653-663). Eligible results are ordered with the best result of each source first (up to 5 sources), then the rest by score, cut to <code>pageSize</code>. The order is therefore not purely by score: it guarantees breadth across sources.</p>
+<p><strong>Step 7: widen when nothing qualifies</strong> (836-857). If no candidate scored 50 or more, the service looks at how spread the embedding scores of the head are. A spread (standard deviation) of 3.0 or more means the head already separates good from bad, and the answer is "no match". A narrow spread means the embedding cannot tell and the answer may be deeper, so it scores further windows of 30 up to 120 examined, stopping when something qualifies.</p>
+<p><strong>Step 8: respond.</strong> Each hit becomes a full ARD entry read from the leaf file (<code>_entry_from_meta</code>, 230-280): <code>identifier</code> (a URN <code>urn:air:&lt;publisher&gt;:okf:&lt;source&gt;.&lt;leaf&gt;</code>), <code>displayName</code>, <code>description</code>, <code>representativeQueries</code>, <code>tags</code>, the <code>okf:*</code> terms of the leaf merged over its source's <code>_access.md</code> (variable, facet, unit, populationType, measuredProperty, statType, constraints, coverage, latest observation, access operations), the markdown body, and <code>score</code>. The envelope also carries <code>usage</code>: model calls, tokens, dollars and a per-stage and per-model breakdown (<code>llm.Ledger</code>).</p>
+<h3>2.4 What NeuralKG2 does with the result</h3>
+<p><code>RemoteCatalog._search</code> (<code>neuralkg2/catalog.py:160-200</code>) validates the shape strictly (a malformed response is a provider failure, never an empty result), maps each entry to a <code>Resource</code> through the <code>directories</code> table in <code>ard-gcp.json</code> (<code>datacommons</code> to the Data Commons plugin, and so on; an entry with no plugin becomes <code>ard:&lt;family&gt;</code> and is handled by the generic source), and turns <code>no_match</code> into an empty result. If the reranked search comes back empty, NeuralKG2 retries once with <code>rerank: false</code> (<code>catalog.py:131-138</code>) and the plugins judge every document themselves.</p>
+<h3>2.5 Where ARD is deterministic and where it is not</h3>
+<p>Deterministic: validation, filters, place stripping, the embedding walk, the slice, per-phrasing and per-source promotion, source-first ordering, the score threshold, the widening rule, and every <code>/variable</code> and <code>/variables</code> answer. Model-driven: the 0-100 rerank score (which decides what appears at all) and the embeddings themselves.</p>
+<h3>2.6 Failure behaviour</h3>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No candidate clears 50</td>
+<td>200, <code>results: []</code>, <code>eligibility: {status: "no_match", threshold, topScore}</code></td>
+</tr>
+<tr>
+<td>Rerank of the first group fails</td>
+<td>503 <code>relevance_scoring_failed</code> (embedding order is deliberately not substituted)</td>
+</tr>
+<tr>
+<td>Query deadline</td>
+<td>504 <code>query_cancelled</code></td>
+</tr>
+<tr>
+<td>Embedding or credential failure</td>
+<td>unhandled, 500, no usage</td>
+</tr>
+<tr>
+<td>Daily quota</td>
+<td>429</td>
+</tr>
+</tbody>
+</table></div>
+<p>Silent behaviours worth knowing (all visible in the code, none visible in a response): sources beyond the fifth are never scored; a failure in any non-leading group drops that source without a signal; malformed ranking items are skipped without notice; <code>rerank: false</code> returns embedding order on a different score scale without saying so; a wide first slice short-circuits widening even when the answer is deeper; broken leaf files lose their <code>okf:*</code> terms without an error.</p>
+<h2>3. Tunables and defaults</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AGENT_FINDER_PORT</code></td>
+<td>8088</td>
+<td><code>agent_finder.py:30</code></td>
+</tr>
+<tr>
+<td><code>AGENT_FINDER_BIND_HOST</code></td>
+<td>127.0.0.1 (the Dockerfile sets 0.0.0.0)</td>
+<td><code>agent_finder.py:34</code></td>
+</tr>
+<tr>
+<td><code>SEARCH_LIMIT_PER_DAY</code></td>
+<td>10000 per IP (0 disables)</td>
+<td><code>agent_finder.py:43</code></td>
+</tr>
+<tr>
+<td><code>TRUST_PROXY</code></td>
+<td>0</td>
+<td><code>agent_finder.py:44</code></td>
+</tr>
+<tr>
+<td><code>AGENT_FINDER_QUERY_TIMEOUT</code></td>
+<td>180 s</td>
+<td><code>agent_finder.py:485</code></td>
+</tr>
+<tr>
+<td><code>AGENT_FINDER_MAX_BODY</code></td>
+<td>65536 bytes</td>
+<td><code>agent_finder.py:486</code></td>
+</tr>
+<tr>
+<td><code>ARD_RERANK</code></td>
+<td>1</td>
+<td><code>index.py:800</code></td>
+</tr>
+<tr>
+<td><code>ARD_PREFILTER</code></td>
+<td>15</td>
+<td><code>index.py:592</code></td>
+</tr>
+<tr>
+<td><code>ARD_PREFILTER_MAX</code></td>
+<td>150</td>
+<td><code>index.py:605</code></td>
+</tr>
+<tr>
+<td><code>ARD_PREFILTER_BAND</code></td>
+<td>0.05 (times 100)</td>
+<td><code>index.py:606</code></td>
+</tr>
+<tr>
+<td><code>ARD_PREFILTER_SLICE</code></td>
+<td>30</td>
+<td><code>index.py:615</code></td>
+</tr>
+<tr>
+<td><code>ARD_PREFILTER_EXAMINED_MAX</code></td>
+<td>120</td>
+<td><code>index.py:616</code></td>
+</tr>
+<tr>
+<td><code>ARD_PREFILTER_NARROW_STD</code></td>
+<td>3.0</td>
+<td><code>index.py:620</code></td>
+</tr>
+<tr>
+<td><code>ARD_PER_SOURCE_POOL</code></td>
+<td>3</td>
+<td><code>index.py:632</code></td>
+</tr>
+<tr>
+<td><code>ARD_RESULT_SOURCES</code></td>
+<td>5</td>
+<td><code>index.py:633</code></td>
+</tr>
+<tr>
+<td><code>ARD_SOURCE_ANCHORS</code></td>
+<td>2</td>
+<td><code>index.py:634</code></td>
+</tr>
+<tr>
+<td><code>ARD_PER_PHRASING</code></td>
+<td>6</td>
+<td><code>index.py:701</code></td>
+</tr>
+<tr>
+<td><code>ARD_STRIP_PLACES</code></td>
+<td>1</td>
+<td><code>index.py:684</code></td>
+</tr>
+<tr>
+<td><code>ARD_MIN_RERANK_SCORE</code></td>
+<td>50</td>
+<td><code>index.py:437</code></td>
+</tr>
+<tr>
+<td><code>ARD_RERANK_MAX_TOKENS</code> / <code>_REASONING_HEADROOM</code> / <code>_REASONING_EFFORT</code> / <code>_DESC</code></td>
+<td>400 / 1500 / low / 0</td>
+<td><code>index.py:415-465</code></td>
+</tr>
+<tr>
+<td><code>RERANK_MODEL</code></td>
+<td>falls back to the chat model; production sets <code>openai/gpt-oss-20b</code></td>
+<td><code>llm.py:169</code></td>
+</tr>
+<tr>
+<td><code>OPENROUTER_MODEL</code></td>
+<td><code>openai/gpt-oss-120b</code></td>
+<td><code>llm.py:160</code></td>
+</tr>
+<tr>
+<td><code>OPENROUTER_EMBEDDING_MODEL</code></td>
+<td><code>openai/text-embedding-3-small</code></td>
+<td><code>llm.py:181</code></td>
+</tr>
+<tr>
+<td><code>LLM_TIMEOUT</code> / <code>LLM_MAX_RETRIES</code> / <code>LLM_PROVIDER_SORT</code></td>
+<td>120 s / 3 / throughput</td>
+<td><code>llm.py:70-71, 355</code></td>
+</tr>
+<tr>
+<td><code>MAX_QUERY</code> (<code>/ask</code>, <code>/mcp</code> only)</td>
+<td>400 characters</td>
+<td><code>mcp_server.py:16</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2>4. Measured behaviour (service statistics, 2026-10-09)</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Searches since start (3 hours)</td>
+<td>414, from 5 distinct callers</td>
+</tr>
+<tr>
+<td>Outcomes</td>
+<td>376 with results, 38 <code>no_match</code> (9%)</td>
+</tr>
+<tr>
+<td>Latency per search</td>
+<td>median 1.84 s, 95th percentile 3.98 s</td>
+</tr>
+<tr>
+<td>Model spend</td>
+<td>$0.00057 per search (rerank dominates; embeddings are about $0.0000003)</td>
+</tr>
+<tr>
+<td>Calls per search</td>
+<td>about 3 model calls (1 embedding + up to 5 rerank groups, averaged)</td>
+</tr>
+<tr>
+<td>Status ledger (<code>neuralweb.dev/status</code>)</td>
+<td>1 of the 4 sample questions on the ARD page judged to return at least 5 relevant documents of 10 (3 partial)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The live <code>/health</code> shows the same counters for the current instance (<code>searches.total</code>, <code>last_at</code>, <code>latency_seconds</code>, <code>failures_by_status</code>); <code>/stats.json</code> has the per-day and per-model breakdown and the OpenRouter key's own spend.</p>
+<h2>5. Invariants</h2>
+<ol>
+<li><strong>A failed rerank is never replaced by embedding order.</strong> The leading group's failure is a 503 that says so (<code>agent_finder.py:795-823</code>).</li>
+<li><strong>Breadth across sources is guaranteed before depth by score</strong>: each source's best three enter the head, and each of up to five sources leads the results with its best table (<code>index.py:632-663</code>).</li>
+<li><strong>Either phrasing finds a table</strong>: a table found by the place-bearing or the place-stripped phrasing stays eligible (<code>_head_with_each_phrasing</code>).</li>
+<li><strong><code>/variable</code> and <code>/variables</code> are exact</strong>: no embedding, no model (<code>agent_finder.py:656-699</code>).</li>
+<li><strong>Names are checked</strong>: an unknown source or publisher is a 400 listing the valid ones, never an empty result that looks like "no match" (<code>filters.py</code>).</li>
+<li><strong>The release is verified at start</strong>: a stale or incomplete index refuses to serve (<code>agent_finder.py:893-899</code>).</li>
+</ol>
+<h2>6. Open issues</h2>
+<ul>
+<li>Sources beyond the fifth are never scored, and a failed non-leading rerank group drops its source with no signal in the response.</li>
+<li>Malformed ranking items are skipped without notice; <code>rerank: false</code> returns embedding order on a different score scale without saying so.</li>
+<li>A wide first slice (standard deviation of 3.0 or more) stops the search with <code>no_match</code> even when the answer sits deeper.</li>
+<li>The daily quota is charged before the request is validated, and it is per process (it resets on restart and is per replica).</li>
+<li>Embedding or credential failures are unhandled and return 500 with no usage in the body.</li>
+<li>Place stripping is a regex and gazetteer; it misses places not listed and can strip words that are also names ("Georgia", "Jordan", "Austin"). <code>strip_capitalized</code> exists but is unused in production.</li>
+<li>Leaf-file errors are swallowed (<code>_leaf_fm</code>, <code>_access_fm</code> return <code>{}</code>), so a broken leaf silently loses its <code>okf:*</code> terms.</li>
+<li>Building search results reads leaf files synchronously inside the event loop; time grows with <code>pageSize</code>.</li>
+<li><code>/health</code> and <code>/stats</code> counters are per instance and reset on restart.</li>
+<li><code>/healthz</code> is answered by Cloud Run's front end, not the app; use <code>/health</code>.</li>
+</ul>
+<h2>7. File map</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP routes, validation, response assembly</td>
+<td><code>agent_finder.py</code></td>
+</tr>
+<tr>
+<td>Index build, search, pool shaping, rerank</td>
+<td><code>registry/index.py</code></td>
+</tr>
+<tr>
+<td>Place stripping</td>
+<td><code>registry/places.py</code></td>
+</tr>
+<tr>
+<td>Source and publisher filters</td>
+<td><code>filters.py</code></td>
+</tr>
+<tr>
+<td>Models, retries, usage ledger</td>
+<td><code>llm.py</code></td>
+</tr>
+<tr>
+<td>MCP and <code>/ask</code></td>
+<td><code>mcp_server.py</code></td>
+</tr>
+<tr>
+<td>Counters and the stats page</td>
+<td><code>stats.py</code></td>
+</tr>
+<tr>
+<td>Leaf generators</td>
+<td><code>tools/gen_*_okf.py</code>, <code>tools/datacommons/</code></td>
+</tr>
+<tr>
+<td>The index</td>
+<td><code>registry/current/</code> (<code>vectors.npy</code>, <code>meta.json</code>, <code>manifest.json</code>)</td>
+</tr>
+<tr>
+<td>Tests</td>
+<td><code>tests/</code> (<code>test_each_phrasing.py</code>, <code>test_variable_lookup.py</code>, <code>test_llm_retry.py</code>, <code>test_health.py</code>, ...)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: true, theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default', securityLevel: 'strict' });
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralWeb design documents</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Newsreader:wght@500;600&display=swap">
+<style>
+:root { color-scheme: light dark; --bg:#f6f7fb; --surface:#fff; --ink:#1d2433; --muted:#52607d; --accent:#2f54c4; --line:#d9dee7; --code:#eef1f7;
+  --display:"Newsreader","Iowan Old Style",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+@media (prefers-color-scheme: dark) { :root { --bg:#10141b; --surface:#171c26; --ink:#e6eaf2; --muted:#98a2b6; --accent:#8fa9ff; --line:#2a3242; --code:#222a39; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.65 var(--body); }
+.wrap { max-width:860px; margin:0 auto; padding-inline:16px; padding-block:28px 72px; }
+nav.top { font:13px var(--mono); display:flex; gap:6px 16px; flex-wrap:wrap; margin-bottom:22px; color:var(--muted); }
+nav.top a { color:var(--accent); text-decoration:none; } nav.top a:hover { text-decoration:underline; } nav.top .here { color:var(--ink); font-weight:600; }
+h1 { font:600 clamp(1.8rem,4vw,2.4rem)/1.15 var(--display); letter-spacing:-.01em; margin:0 0 .6em; text-wrap:balance; }
+h2 { font:600 1.55rem/1.25 var(--display); margin:2.2em 0 .5em; padding-top:.4em; border-top:1px solid var(--line); }
+h3 { font:600 1.15rem/1.3 var(--display); margin:1.8em 0 .4em; }
+p, li { max-width:72ch; } a { color:var(--accent); }
+code { font:.88em var(--mono); background:var(--code); padding:.12em .36em; border-radius:4px; overflow-wrap:anywhere; }
+pre { background:var(--code); padding:14px 16px; border-radius:8px; overflow-x:auto; line-height:1.45; } pre code { background:none; padding:0; overflow-wrap:normal; }
+pre.mermaid { background:var(--surface); border:1px solid var(--line); text-align:center; }
+.tablewrap { overflow-x:auto; margin:1em 0; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+table { border-collapse:collapse; width:100%; font-size:.92rem; min-width:520px; }
+th { text-align:left; font:600 12px var(--mono); text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+td { padding:8px 12px; border-top:1px solid var(--line); vertical-align:top; } tr:first-child td { border-top:0; }
+em { color:var(--muted); } li { margin:.25em 0; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:24px; }
+.card { display:block; padding:16px 18px; background:var(--surface); border:1px solid var(--line); border-radius:10px; text-decoration:none; color:inherit; }
+.card:hover { border-color:var(--accent); } .card b { color:var(--accent); font:600 1.1rem var(--display); display:block; margin-bottom:4px; }
+.card span { color:var(--muted); font-size:.92rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="top"><span class="here">Design documents</span> <a href="/status/">Status</a></nav>
+<h1>How a query moves through NeuralWeb</h1>
+<p>One document for each system: what it is, how a query travels through it step by step, what it costs, how it fails, what must always hold and what is still open. Every claim points at a file and line in the code.</p>
+<div class="cards">
+<a class="card" href="/design/neural-db/"><b>Neural DB</b><span>NeuralKG2: a question in plain words becomes an answer whose every number comes from a published source.</span></a>
+<a class="card" href="/design/ard/"><b>ARD finder</b><span>Which published tables describe a quantity: the index, the search and the model rerank.</span></a>
+<a class="card" href="/design/qdrss/"><b>Query-defined RSS</b><span>A standing interest becomes an RSS feed of matching episodes and transcript passages.</span></a>
+<a class="card" href="/design/nlweb/"><b>NLWeb samples</b><span>Natural-language search over recipes, movies, reviews, trails and homes.</span></a>
+</div>
+</div>
+</body>
+</html>
