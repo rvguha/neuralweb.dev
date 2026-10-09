@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="robots" content="noindex">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NPR on NeuralWeb</title>
+  <style>
+    :root { color-scheme: light; --ink: #1d2433; --muted: #52607d; --accent: #3b5ccc; --line: #dfe4ef; --card: #fff; --bg: #f6f7fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--bg); }
+    main { max-width: 960px; margin: 0 auto; padding: 56px 16px 64px; }
+    h1 { margin: 0 0 8px; font-size: clamp(1.8rem, 4vw, 2.4rem); letter-spacing: -.01em; }
+    .lede { margin: 0 0 36px; color: var(--muted); max-width: 640px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    a.card { display: flex; flex-direction: column; gap: 6px; padding: 20px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+    a.card:hover, a.card:focus-visible { border-color: var(--accent); box-shadow: 0 4px 16px rgba(59, 92, 204, .12); outline: none; }
+    .item { display: flex; flex-direction: column; gap: 6px; }
+    .item > a.card { flex: 1; }
+    a.code { padding-left: 20px; font-size: .85rem; color: var(--muted); }
+    a.code:hover, a.code:focus-visible { color: var(--accent); }
+    .emoji { font-size: 1.8rem; line-height: 1; }
+    .name { font-weight: 700; font-size: 1.15rem; color: var(--accent); }
+    .source { color: var(--muted); font-size: .9rem; }
+    .about { font-size: .92rem; color: var(--ink); }
+    .example { margin-top: 2px; font-size: .92rem; color: var(--ink); font-style: italic; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>NPR and This American Life on NeuralWeb</h1>
+    <p class="lede">Natural-language search over NPR's podcasts and over every This American Life episode.</p>
+    <nav class="grid" aria-label="NPR sources">
+      <div class="item">
+        <a class="card" href="https://rss.neuralweb.dev/npr">
+          <span class="emoji" aria-hidden="true">📻</span>
+          <span class="name">NPR podcasts</span>
+          <span class="source">QDRSS · 90+ shows</span>
+          <span class="about">Follow a subject, not a show. Turn a question into an RSS feed of matching episodes from Fresh Air, Planet Money, Radiolab, Morning Edition and every other NPR and public-radio podcast.</span>
+          <span class="example">“The economics of housing, rent and the cost of living”</span>
+        </a>
+        <a class="code" href="https://github.com/rvguha/rssnlweb">Code: rvguha/rssnlweb</a>
+      </div>
+      <div class="item">
+        <a class="card" href="https://rss.neuralweb.dev/tal">
+          <span class="emoji" aria-hidden="true">🎧</span>
+          <span class="name">This American Life</span>
+          <span class="source">QDRSS · every episode, by section</span>
+          <span class="about">Ask in your own words and get the moment in the show: which episode, which act, and the exact time to press play, searched in two-minute passages of each transcript.</span>
+          <span class="example">“Someone who lied to get a job”</span>
+        </a>
+        <a class="code" href="https://github.com/rvguha/rssnlweb">Code: rvguha/rssnlweb</a>
+      </div>
+    </nav>
+  </main>
+</body>
+</html>
