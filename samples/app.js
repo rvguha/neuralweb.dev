@@ -640,6 +640,26 @@ function setSidebar(open) {
   }
 }
 
+$("close-sidebar").addEventListener("click", () => setSidebar(false));
+
+// On a phone the conversation list covers the page, so picking something puts it away.
+const narrow = window.matchMedia("(max-width: 760px)");
+const closeIfNarrow = () => { if (narrow.matches) setSidebar(false); };
+$("conversations").addEventListener("click", event => { if (event.target.closest(".conversation-open")) closeIfNarrow(); });
+$("new-chat").addEventListener("click", closeIfNarrow);
+
+// The keyboard shrinks the visual viewport, not the layout one: size the app to what is visible and follow how far Safari has scrolled
+// it, so the question box stays above the keyboard.
+if (window.visualViewport) {
+  const fit = () => {
+    const root = document.documentElement.style;
+    root.setProperty("--app-height", `${Math.round(window.visualViewport.height)}px`);
+    window.scrollTo(0, 0);
+  };
+  window.visualViewport.addEventListener("resize", fit);
+  fit();
+}
+
 $("toggle-sidebar").addEventListener("click", () => {
   setSidebar(document.body.classList.contains("sidebar-collapsed"));
 });

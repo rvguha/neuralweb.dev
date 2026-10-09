@@ -72,7 +72,7 @@ td small { display: block; font-size: .72rem; }
 .dialog-close:hover { color: #172036; background: #e1e6f2; }
 @media (max-width: 560px) {
   .usage-head, .head { align-items: flex-start; flex-direction: column; gap: 4px; }
-  dialog { width: calc(100% - 20px); max-height: calc(100vh - 20px); padding: 24px 22px; }
+  dialog { width: calc(100% - 20px); max-height: calc(100vh - 20px); max-height: calc(100dvh - 20px); padding: 24px 22px; }
 }
 
 /* ---- chat shell: conversations beside a scrolling thread ---------------- */
@@ -86,7 +86,7 @@ html, body { height: 100%; overflow: hidden; }
    collapsed track sizes after the class was removed -- body carried no
    `sidebar-collapsed` class while the computed columns still read `0px 1280px`.
    The panel opens and closes instantly, which is honest and always correct. */
-.shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); height: 100vh; }
+.shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); height: 100vh; height: var(--app-height, 100dvh); }
 body.sidebar-collapsed .shell { grid-template-columns: 0 minmax(0, 1fr); }
 /* Hidden by clipping rather than `display: none`, so the column can animate
    shut instead of snapping, and so the panel keeps its scroll position.
@@ -133,7 +133,7 @@ body.sidebar-collapsed .sidebar { padding-inline: 0; border-right: none; visibil
    squeezes the thread and pushes the top bar -- and the query cost on it -- off
    the screen. */
 main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
-  width: auto; max-width: none; min-width: 0; height: 100vh; margin: 0; }
+  width: auto; max-width: none; min-width: 0; height: 100vh; height: var(--app-height, 100dvh); margin: 0; }
 .topbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 10px 20px;
   background: white; border-bottom: 1px solid #e3e7f1; }
 /* The title is the only thing here that may shrink, and a flex item will not
@@ -158,11 +158,30 @@ main { display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
   font: inherit; font-size: .92rem; line-height: 1.45; color: #1b2130; resize: none;
   background: white; border: 1px solid #cfd7e8; border-radius: 10px; }
 .composer textarea:focus { outline: 2px solid #b9c6ec; outline-offset: -1px; border-color: #8fa4dd; }
-.send { padding: 11px 18px; font-size: .9rem; }
+.composer textarea { min-width: 0; }
+/* The page-wide `button { width: 100% }` for phones must not stretch the send button across the composer. */
+.composer .send { flex: none; width: auto; }
+@media (max-width: 560px) {
+  .composer { padding: 10px 12px max(12px, env(safe-area-inset-bottom, 0px)); }
+  .followup { padding-inline: 12px; }
+  .topbar { padding-inline: 12px; padding-top: max(10px, env(safe-area-inset-top, 0px)); }
+  .scroll { padding-inline: 12px; }
+  /* Safari on iPhone zooms the page when a field under 16px takes focus, and does not zoom back. */
+  .composer textarea, .search, .mode select { font-size: 16px; }
+  .composer textarea { max-height: 120px; }
+}
 
+/* Phones and narrow windows. The conversation list becomes a drawer over the page rather than a grid column. As a column it broke the
+   layout twice: `body.sidebar-collapsed .shell` (0 + 1fr) is more specific than the single-column rule, and `.sidebar { display: none }`
+   took the sidebar out of the grid, so `main` fell into the 0-width first track and the question box shrank to a sliver. */
+.sidebar-actions { display: flex; gap: 6px; }
+.close-sidebar { display: none; }
 @media (max-width: 760px) {
-  .shell { grid-template-columns: minmax(0, 1fr); }
-  .sidebar { display: none; }
+  .shell, body.sidebar-collapsed .shell { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { position: fixed; z-index: 30; top: 0; bottom: 0; left: 0; width: min(86vw, 320px); box-shadow: 8px 0 24px #1b21302e;
+    padding-top: max(14px, env(safe-area-inset-top, 0px)); }
+  body.sidebar-collapsed .sidebar { display: none; }
+  .close-sidebar { display: inline-block; }
 }
 
 /* Removing a turn, or the conversation it belongs to. Both stay quiet until

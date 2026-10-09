@@ -3,7 +3,7 @@
 <head>
   <meta name="robots" content="noindex">
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Ask NLWeb Samples</title>
   <link rel="stylesheet" href="../styles.css?v=29">
 </head>
@@ -12,7 +12,8 @@
     <aside id="sidebar" class="sidebar">
       <div class="sidebar-head">
         <h2>Conversations</h2>
-        <button type="button" id="new-chat" class="icon" title="New chat" aria-label="New chat">+</button>
+        <span class="sidebar-actions"><button type="button" id="new-chat" class="icon" title="New chat" aria-label="New chat">+</button>
+        <button type="button" id="close-sidebar" class="icon close-sidebar" title="Close" aria-label="Close conversations">&times;</button></span>
       </div>
       <input id="search" class="search" type="search" placeholder="Search conversations" aria-label="Search conversations">
       <div id="conversations" class="conversations" role="list"></div>
