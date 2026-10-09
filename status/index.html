@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>NeuralWeb status</title>
+
+<style>
+html { background: var(--bg); }
+/* One screen of status on top, then each service's entry points as rows. Ink-blue on cool grey, status in its own semantic colors. */
+:root { --bg:#f3f5f8; --surface:#ffffff; --ink:#18202e; --muted:#5a6578; --line:#d9dee7; --accent:#2f54c4; --good:#177a45; --good-bg:#e1f3e8; --warn:#8a5a00; --warn-bg:#fdf0d2; --bad:#b3261e; --bad-bg:#fbe4e1; --chip:#e8ecf4;
+  --display:"Newsreader","Iowan Old Style",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#10141b; --surface:#171c26; --ink:#e6eaf2; --muted:#98a2b6; --line:#2a3242; --accent:#8fa9ff; --good:#58c98a; --good-bg:#16301f; --warn:#f0c15a; --warn-bg:#3a2e12; --bad:#ff8a80; --bad-bg:#3b1b19; --chip:#222a39; color-scheme:dark; } }
+:root[data-theme="dark"] { --bg:#10141b; --surface:#171c26; --ink:#e6eaf2; --muted:#98a2b6; --line:#2a3242; --accent:#8fa9ff; --good:#58c98a; --good-bg:#16301f; --warn:#f0c15a; --warn-bg:#3a2e12; --bad:#ff8a80; --bad-bg:#3b1b19; --chip:#222a39; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 var(--body); }
+.wrap { max-width:1040px; margin:0 auto; padding-inline:16px; padding-block:28px 56px; display:grid; gap:28px; }
+h1 { margin:0; font:600 clamp(1.7rem,4vw,2.3rem)/1.15 var(--display); letter-spacing:-.01em; text-wrap:balance; }
+h2 { margin:0; font:600 1.15rem/1.3 var(--display); }
+.sub { margin:6px 0 0; color:var(--muted); max-width:62ch; }
+.stamp { font:12px var(--mono); color:var(--muted); margin-top:10px; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+.tile { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px 16px; min-width:0; }
+.tile b { display:block; font:600 1.9rem/1.1 var(--display); font-variant-numeric:tabular-nums; }
+.tile span { color:var(--muted); font-size:.85rem; }
+.tile.ok b { color:var(--good); } .tile.bad b { color:var(--bad); }
+section.group { background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.ghead { padding:14px 16px 12px; border-bottom:1px solid var(--line); display:grid; gap:2px; }
+.ghead .host { font:12px var(--mono); color:var(--muted); }
+.ghead p { margin:2px 0 0; color:var(--muted); font-size:.9rem; max-width:70ch; }
+.rows { display:grid; }
+.row { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1.6fr) 64px 56px; gap:6px 14px; align-items:center; padding:10px 16px; border-top:1px solid var(--line); }
+.row:first-child { border-top:0; }
+.row a.name { color:var(--accent); font-weight:600; text-decoration:none; overflow-wrap:anywhere; }
+.row a.name:hover, .row a.name:focus-visible { text-decoration:underline; outline:none; }
+.row .note { color:var(--muted); font-size:.88rem; min-width:0; }
+.row .url { display:block; font:11.5px var(--mono); color:var(--muted); overflow-wrap:anywhere; }
+.pill { justify-self:start; font:600 12px var(--mono); padding:2px 8px; border-radius:99px; background:var(--good-bg); color:var(--good); font-variant-numeric:tabular-nums; }
+.pill.bad { background:var(--bad-bg); color:var(--bad); }
+.ms { font:12px var(--mono); color:var(--muted); text-align:right; font-variant-numeric:tabular-nums; }
+.tablewrap { overflow-x:auto; background:var(--surface); border:1px solid var(--line); border-radius:8px; }
+table { width:100%; border-collapse:collapse; font-size:.9rem; }
+th { text-align:left; font:600 11.5px var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--muted); padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+td { padding:9px 14px; border-top:1px solid var(--line); vertical-align:top; }
+td.m { font:12.5px var(--mono); white-space:nowrap; }
+.left { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px 16px; min-width:0; }
+.card h3 { margin:0 0 2px; font:600 1rem var(--display); }
+.card .tag { font:11.5px var(--mono); color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+.card ul { margin:10px 0 0; padding-left:18px; display:grid; gap:6px; font-size:.9rem; }
+.legend { color:var(--muted); font-size:.85rem; }
+@media (max-width:640px) { .row { grid-template-columns:1fr auto; } .row .note { grid-column:1 / -1; order:3; } .ms { display:none; } }
+
+.tests { display:grid; gap:14px; }
+.toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.toolbar button { font:600 12px var(--mono); padding:5px 12px; border-radius:99px; border:1px solid var(--line); background:var(--surface); color:var(--ink); cursor:pointer; }
+.toolbar button[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:var(--bg); }
+details.ep { background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+details.ep > summary { list-style:none; cursor:pointer; padding:14px 16px; display:grid; gap:4px; }
+details.ep > summary::-webkit-details-marker { display:none; }
+.sumline { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:baseline; }
+.sumline h3 { margin:0; font:600 1.05rem var(--display); }
+.counts { display:flex; gap:6px; flex-wrap:wrap; }
+.how, .when { color:var(--muted); font-size:.85rem; }
+.pill.pass { background:var(--good-bg); color:var(--good); }
+.pill.partial { background:var(--warn-bg); color:var(--warn); }
+.pill.fail { background:var(--bad-bg); color:var(--bad); }
+.qtable { overflow-x:auto; border-top:1px solid var(--line); }
+.qtable table { min-width:760px; }
+.qtable tr.q { cursor:pointer; }
+.qtable tr.q:hover td { background:var(--chip); }
+.qtable td.when { white-space:nowrap; font:12px var(--mono); color:var(--muted); }
+.qtable td.sum { color:var(--muted); font-size:.88rem; overflow-wrap:anywhere; }
+.qtable td.grp { color:var(--muted); font-size:.82rem; }
+.qtable tr.detail td { background:var(--chip); font-size:.86rem; }
+.qtable tr.detail ul { margin:4px 0 0; padding-left:18px; display:grid; gap:3px; }
+.qtable tr.detail b { font:600 11.5px var(--mono); text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Newsreader:wght@500;600&display=swap">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>NeuralWeb entry points</h1>
+    <p class="sub">Every page and service on neuralweb.dev, what it is, and whether it answered when last checked.</p>
+    <div class="stamp" id="stamp"></div>
+  </header>
+  <div class="tiles" id="tiles"></div>
+  <div id="groups" style="display:grid;gap:18px"></div>
+  <div style="display:grid;gap:10px">
+    <h2>Every question, when it was tested, and what came back</h2>
+    <p class="sub" id="testsub">Loading results…</p>
+    <div class="toolbar" id="filters" role="group" aria-label="Filter by outcome"></div>
+    <div class="tests" id="tests"></div>
+  </div>
+  <div style="display:grid;gap:10px">
+    <h2>What is serving</h2>
+    <div class="tablewrap"><table><thead><tr><th>Service</th><th>Live revision</th><th>Image</th><th>Serves</th><th>Previous</th></tr></thead><tbody id="revs"></tbody></table></div>
+  </div>
+  <div style="display:grid;gap:10px">
+    <h2>What is left</h2>
+    <div class="left" id="left"></div>
+  </div>
+  <p class="legend">Addresses on neuralweb.dev show their HTTP code. The others show up or down: the browser can tell whether a request got an answer, not what the answer was. Revisions and open work are updated by hand.</p>
+</div>
+<script>
+const DATA = {"at": "2026-10-09 14:52 UTC", "groups": [{"name": "Neural DB", "host": "kg.neuralweb.dev \u00b7 neuralkg2", "about": "Ask a question in plain words; it plans, queries sources and shows each stage.", "rows": [{"name": "Neural DB, all sources", "url": "https://kg.neuralweb.dev/", "note": "68 sample questions by topic", "code": 200, "ms": 91}, {"name": "Understanding page", "url": "https://kg.neuralweb.dev/understanding", "note": "How a question is read", "code": 200, "ms": 39}, {"name": "Sources", "url": "https://kg.neuralweb.dev/sources", "note": "The sources it can use", "code": 200, "ms": 33}]}, {"name": "Neural DB over Data Commons", "host": "neuralweb.dev/4dc \u00b7 neuralkg2", "about": "The same page restricted to Google Data Commons, samples sectioned by query shape.", "rows": [{"name": "Data Commons hub", "url": "https://neuralweb.dev/4dc/", "note": "Landing page for both ways in", "code": 200, "ms": 46}, {"name": "Neural DB over Data Commons", "url": "https://neuralweb.dev/4dc/neuraldb/", "note": "Wraps kg.neuralweb.dev/?sources=datacommons", "code": 200, "ms": 44}, {"name": "Restricted page, direct", "url": "https://kg.neuralweb.dev/?sources=datacommons", "note": "90 samples in 13 shape sections", "code": 200, "ms": 38}, {"name": "ARD over Data Commons", "url": "https://neuralweb.dev/4dc/ard/", "note": "Find which variable documents describe a quantity", "code": 200, "ms": 45}]}, {"name": "ARD agent finder", "host": "ard.neuralweb.dev \u00b7 ard", "about": "Index of 24,827 Data Commons and open-data entries, searched and reranked.", "rows": [{"name": "Finder service", "url": "https://ard.neuralweb.dev/", "note": "Source families and index size", "code": 200, "ms": 42}, {"name": "Health", "url": "https://ard.neuralweb.dev/health", "note": "Liveness check", "code": 200, "ms": 41}]}, {"name": "Query-defined RSS", "host": "rss.neuralweb.dev \u00b7 qdrss", "about": "Turn a question into an RSS feed of matching podcast episodes.", "rows": [{"name": "Feeds home", "url": "https://rss.neuralweb.dev/", "note": "12 collections, 238,000 items", "code": 200, "ms": 30}, {"name": "NYT podcasts", "url": "https://rss.neuralweb.dev/nyt", "note": "48 example topics in 6 groups", "code": 200, "ms": 29}, {"name": "NPR podcasts", "url": "https://rss.neuralweb.dev/npr", "note": "53 example topics in 7 groups", "code": 200, "ms": 26}, {"name": "This American Life", "url": "https://rss.neuralweb.dev/tal", "note": "17 example searches, by passage", "code": 200, "ms": 31}, {"name": "Collections", "url": "https://rss.neuralweb.dev/collections", "note": "JSON: sources and items per collection", "code": 200, "ms": 1966}, {"name": "Health", "url": "https://rss.neuralweb.dev/health", "note": "Liveness check", "code": 200, "ms": 532}]}, {"name": "neuralweb.dev hubs", "host": "neuralweb.dev \u00b7 GitHub Pages", "about": "Landing pages that point at the services above.", "rows": [{"name": "Home", "url": "https://neuralweb.dev/", "note": "The three main services", "code": 200, "ms": 49}, {"name": "NYT hub", "url": "https://neuralweb.dev/4nyt/", "note": "Podcasts, Wirecutter, Recipes", "code": 200, "ms": 43}, {"name": "NPR hub", "url": "https://neuralweb.dev/4npr/", "note": "NPR podcasts and This American Life", "code": 200, "ms": 46}]}, {"name": "NLWeb samples", "host": "neuralweb.dev/samples \u00b7 nlweb-*", "about": "Natural-language search over reviews, recipes, homes, movies, trails.", "rows": [{"name": "Samples index", "url": "https://neuralweb.dev/samples/", "note": "All five demos", "code": 200, "ms": 47}, {"name": "Wirecutter reviews", "url": "https://neuralweb.dev/samples/reviews/", "note": "Product reviews", "code": 200, "ms": 46}, {"name": "NYT Cooking recipes", "url": "https://neuralweb.dev/samples/recipes/", "note": "24,287 recipes", "code": 200, "ms": 44}, {"name": "Homes", "url": "https://neuralweb.dev/samples/homes/", "note": "Listings", "code": 200, "ms": 42}, {"name": "Movies", "url": "https://neuralweb.dev/samples/movies/", "note": "Film search", "code": 200, "ms": 44}, {"name": "Trails", "url": "https://neuralweb.dev/samples/trails/", "note": "Hiking", "code": 200, "ms": 48}, {"name": "Wake", "url": "https://neuralweb.dev/samples/wake/", "note": "Wake sample", "code": 200, "ms": 45}]}]};
+const REVS = [["neuralkg2", "neuralkg2-00103-mis", "6dca339", "Neural DB, Data Commons page", "neuralkg2-00100-qem"], ["ard", "ard-00047-duz", "20f084fb", "ARD finder", "not recorded"], ["qdrss", "qdrss-00032-qux", "a74efdb", "NYT, NPR, TAL feeds", "qdrss-00030-wow"], ["nlweb-reviews", "nlweb-reviews-00017-98r", "20261005", "Reviews sample", ""], ["nlweb-recipes", "nlweb-recipes-00023-dih", "20261005", "Recipes sample (a newer revision, 00024, is deployed but not serving)", ""], ["nlweb-homes", "nlweb-homes-00016-2h2", "20261005", "Homes sample", ""], ["nlweb-movies", "nlweb-movies-00016-2ct", "20261005", "Movies sample", ""], ["nlweb-trails", "nlweb-trails-00016-kn7", "20261005", "Trails sample", ""]];
+const LEFT = [["Answers", "Neural DB over Data Commons", ["Continents and regions as a place type (life expectancy by continent, renewable energy across regions)", "Source, year and definition shown on lists, rankings and filters", "A question with one meaning that lacks data answers 'partial' (GDP for India, New Zealand, Brazil)", "Lists that still fail: New England, Central America, the largest cities in Florida", "Breakdowns that fail: educational attainment, Cook County by race", "Vague questions ('How is Brazil's economy doing?') only answer partially", "Catalog gaps: county smoke PM2.5, world solar energy, poverty rate"]], ["Codex review", "NeuralKG2", ["Population and ranking claims cite no evidence", "Units on thresholds ('20%' against a fraction)", "One engine for the CLI and the hosted page", "Older review items: panel agreement, additivity declared by every plugin, F6, F7, F8, F11"]], ["Operations", "Board, cleanup, checks", ["Run the board's adopt script on the real repos so both agents see the protocol", "Re-run the 17 datacommons.org questions after the latest fixes", "Delete the old image ard:9643e77 (needs an IAM grant)", "Persist model-provider health across restarts", "Find out why nlweb-recipes revision 00024 is not serving", "ARD+ (set aside for now)"]]];
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+$('stamp').textContent = 'Snapshot ' + DATA.at + ' · checking live…';
+const rows = DATA.groups.flatMap(g => g.rows);
+const nodes = new Map();
+const tile = (n, label, cls) => { const t = el('div', 'tile ' + (cls || '')); t.append(el('b', '', n), el('span', '', label)); return t; };
+function drawTiles() {
+  const ok = rows.filter(r => r.code === 200).length;
+  const slow = rows.filter(r => r.ms > 2000).length;
+  $('tiles').replaceChildren(
+    tile(ok + ' / ' + rows.length, 'entry points answering', ok === rows.length ? 'ok' : 'bad'),
+    tile(DATA.groups.length, 'groups of pages'),
+    tile(REVS.length, 'Cloud Run services'),
+    tile(slow, 'slower than 2 s', slow ? 'bad' : 'ok'));
+}
+drawTiles();
+for (const g of DATA.groups) {
+  const s = el('section', 'group');
+  const h = el('div', 'ghead'); h.append(el('h2', '', g.name), el('div', 'host', g.host), el('p', '', g.about));
+  const list = el('div', 'rows');
+  for (const r of g.rows) {
+    const row = el('div', 'row');
+    const left = el('div'); const a = el('a', 'name', r.name); a.href = r.url; a.target = '_blank'; a.rel = 'noopener';
+    left.append(a, el('span', 'url', r.url.replace('https://', '')));
+    const pill = el('span', 'pill' + (r.code === 200 ? '' : ' bad'), r.code === 200 ? '200 OK' : String(r.code || 'down'));
+    const ms = el('span', 'ms', r.ms + ' ms');
+    nodes.set(r, [pill, ms]);
+    row.append(left, el('div', 'note', r.note), pill, ms);
+    list.append(row);
+  }
+  s.append(h, list); $('groups').append(s);
+}
+for (const [svc, rev, img, what, prev] of REVS) {
+  const tr = el('tr'); const mk = (t, c) => { const td = el('td', c, t); tr.append(td); };
+  mk(svc, 'm'); mk(rev, 'm'); mk(img, 'm'); mk(what); mk(prev || 'none kept', 'm'); $('revs').append(tr);
+}
+for (const [tag, title, items] of LEFT) {
+  const c = el('div', 'card'); c.append(el('div', 'tag', tag), el('h3', '', title));
+  const ul = el('ul'); for (const i of items) ul.append(el('li', '', i)); c.append(ul); $('left').append(c);
+}
+
+// Live check: each address is requested from the visitor's browser. A cross-origin page cannot be read, only reached,
+// so it shows "up" when it answers and "down" when the request fails; same-origin pages show their real code.
+async function probe(r) {
+  const [pill, ms] = nodes.get(r);
+  const t = performance.now();
+  const sameOrigin = new URL(r.url).origin === location.origin;
+  try {
+    const res = await fetch(r.url + (r.url.includes('?') ? '&' : '?') + '_=' + Date.now(), { mode: sameOrigin ? 'cors' : 'no-cors', cache: 'no-store' });
+    r.ms = Math.round(performance.now() - t);
+    r.code = sameOrigin ? res.status : 200;
+    pill.textContent = sameOrigin ? (res.ok ? res.status + ' OK' : String(res.status)) : 'up';
+  } catch (e) {
+    r.ms = Math.round(performance.now() - t); r.code = 0; pill.textContent = 'down';
+  }
+  pill.className = 'pill' + (r.code === 200 ? '' : ' bad');
+  ms.textContent = r.ms + ' ms';
+}
+Promise.all(rows.map(probe)).then(() => {
+  drawTiles();
+  $('stamp').textContent = 'Checked live ' + new Date().toLocaleString() + ' · revisions and open work as of ' + DATA.at;
+});
+
+// ---- the test ledger: results.json is written by tools/status_ledger.py ----
+const fmt = iso => new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+let filter = 'all';
+let LEDGER = null;
+function drawLedger() {
+  const box = $('tests'); box.replaceChildren();
+  for (const ep of LEDGER.endpoints) {
+    const counts = { pass: 0, partial: 0, fail: 0 };
+    for (const t of ep.tests) counts[t.outcome]++;
+    const times = ep.tests.map(t => t.tested_at).sort();
+    const d = el('details', 'ep'); d.open = false;
+    const sum = el('summary'); const line = el('div', 'sumline'); line.append(el('h3', '', ep.name));
+    const c = el('div', 'counts');
+    for (const k of ['pass', 'partial', 'fail']) if (counts[k]) c.append(el('span', 'pill ' + k, counts[k] + ' ' + k));
+    line.append(c, el('span', 'when', ep.tests.length + ' questions · tested ' + fmt(times[0]) + (times.length > 1 && fmt(times[0]) !== fmt(times[times.length - 1]) ? ' to ' + fmt(times[times.length - 1]) : '')));
+    sum.append(line, el('div', 'how', ep.how)); d.append(sum);
+    const wrap = el('div', 'qtable'); const table = el('table');
+    const head = el('thead'); const hr = el('tr'); const hasMix = ep.tests.some(t => t.detail && t.detail.variety);
+    for (const h of ['Question', 'Group', 'Tested', 'Result', 'What came back'].concat(hasMix ? ['Variety of sources'] : [])) hr.append(el('th', '', h)); head.append(hr); table.append(head);
+    const body = el('tbody');
+    for (const t of ep.tests.filter(t => filter === 'all' || t.outcome === filter)) {
+      const tr = el('tr', 'q'); tr.tabIndex = 0;
+      const q = el('td', '', t.question); const g = el('td', 'grp', t.group || '');
+      const w = el('td', 'when', fmt(t.tested_at)); w.title = t.tested_at;
+      const r = el('td'); r.append(el('span', 'pill ' + t.outcome, t.outcome));
+      tr.append(q, g, w, r, el('td', 'sum', t.summary));
+      const mix = t.detail && t.detail.variety;
+      if (hasMix) tr.append(el('td', 'sum', mix && mix.sources ? mix.sources + ' ' + mix.unit + ' · biggest ' + Math.round(mix.top_share * 100) + '%' : ''));
+      const more = el('tr', 'detail'); more.hidden = true; const mt = el('td'); mt.colSpan = hasMix ? 6 : 5;
+      const add = (label, items) => { if (!items || !items.length) return; mt.append(el('b', '', label)); const ul = el('ul'); for (const i of items) ul.append(el('li', '', i)); mt.append(ul); };
+      const x = t.detail || {};
+      add('Answer', x.claims); add('Failures', x.failures); add('Top results', x.top); add('Notes', x.disclosures);
+      if (x.judge) add('Judge', [x.judge]);
+      const meta = []; if (t.seconds != null) meta.push(t.seconds + ' s'); if (t.cost_usd != null) meta.push('$' + t.cost_usd.toFixed(4)); if (t.shape) meta.push('shape: ' + t.shape);
+      if (x.variety && x.variety.sources) add('Variety', [x.variety.sources + ' ' + x.variety.unit + ' among the ' + x.variety.of + '; the biggest is ' + x.variety.top + ' with ' + Math.round(x.variety.top_share * 100) + '%; equal to ' + x.variety.effective + ' equally sized ' + x.variety.unit]);
+      add('Run', meta.length ? [meta.join(' · ')] : []);
+      more.append(mt);
+      const toggle = () => { more.hidden = !more.hidden; };
+      tr.addEventListener('click', toggle); tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      body.append(tr, more);
+    }
+    table.append(body); wrap.append(table); d.append(wrap); box.append(d);
+  }
+}
+fetch('results.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(data => {
+  LEDGER = data;
+  const all = data.endpoints.flatMap(e => e.tests);
+  $('testsub').textContent = all.length + ' questions across ' + data.endpoints.length + ' endpoints, last run ' + fmt(data.generated) + '. Select an endpoint to see each question; select a question for the answer or the episodes returned.';
+  for (const f of ['all', 'pass', 'partial', 'fail']) {
+    const b = el('button', '', f === 'all' ? 'All (' + all.length + ')' : f + ' (' + all.filter(t => t.outcome === f).length + ')'); b.type = 'button'; b.setAttribute('aria-pressed', String(f === filter));
+    b.addEventListener('click', () => { filter = f; for (const x of $('filters').children) x.setAttribute('aria-pressed', String(x === b)); drawLedger(); });
+    $('filters').append(b);
+  }
+  drawLedger();
+}).catch(e => { $('testsub').textContent = 'The test results could not be loaded (' + e.message + ').'; });
+</script>
+</body>
+</html>
