@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life of a query: the NLWeb samples</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Newsreader:wght@500;600&display=swap">
+<style>
+:root { color-scheme: light dark; --bg:#f6f7fb; --surface:#fff; --ink:#1d2433; --muted:#52607d; --accent:#2f54c4; --line:#d9dee7; --code:#eef1f7;
+  --display:"Newsreader","Iowan Old Style",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+@media (prefers-color-scheme: dark) { :root { --bg:#10141b; --surface:#171c26; --ink:#e6eaf2; --muted:#98a2b6; --accent:#8fa9ff; --line:#2a3242; --code:#222a39; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.65 var(--body); }
+.wrap { max-width:860px; margin:0 auto; padding-inline:16px; padding-block:28px 72px; }
+nav.top { font:13px var(--mono); display:flex; gap:6px 16px; flex-wrap:wrap; margin-bottom:22px; color:var(--muted); }
+nav.top a { color:var(--accent); text-decoration:none; } nav.top a:hover { text-decoration:underline; } nav.top .here { color:var(--ink); font-weight:600; }
+h1 { font:600 clamp(1.8rem,4vw,2.4rem)/1.15 var(--display); letter-spacing:-.01em; margin:0 0 .6em; text-wrap:balance; }
+h2 { font:600 1.55rem/1.25 var(--display); margin:2.2em 0 .5em; padding-top:.4em; border-top:1px solid var(--line); }
+h3 { font:600 1.15rem/1.3 var(--display); margin:1.8em 0 .4em; }
+p, li { max-width:72ch; } a { color:var(--accent); }
+code { font:.88em var(--mono); background:var(--code); padding:.12em .36em; border-radius:4px; overflow-wrap:anywhere; }
+pre { background:var(--code); padding:14px 16px; border-radius:8px; overflow-x:auto; line-height:1.45; } pre code { background:none; padding:0; overflow-wrap:normal; }
+pre.mermaid { background:var(--surface); border:1px solid var(--line); text-align:center; }
+.tablewrap { overflow-x:auto; margin:1em 0; border:1px solid var(--line); border-radius:8px; background:var(--surface); }
+table { border-collapse:collapse; width:100%; font-size:.92rem; min-width:520px; }
+th { text-align:left; font:600 12px var(--mono); text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+td { padding:8px 12px; border-top:1px solid var(--line); vertical-align:top; } tr:first-child td { border-top:0; }
+em { color:var(--muted); } li { margin:.25em 0; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; margin-top:24px; }
+.card { display:block; padding:16px 18px; background:var(--surface); border:1px solid var(--line); border-radius:10px; text-decoration:none; color:inherit; }
+.card:hover { border-color:var(--accent); } .card b { color:var(--accent); font:600 1.1rem var(--display); display:block; margin-bottom:4px; }
+.card span { color:var(--muted); font-size:.92rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="top"><a href="/design/">Design documents</a> <a href="/design/neural-db/">Neural DB</a> <a href="/design/ard/">ARD finder</a> <a href="/design/qdrss/">Query-defined RSS</a> <span class="here">NLWeb samples</span></nav>
+<h1>Life of a query: the NLWeb samples</h1>
+<p><em>Design document, 2026-10-09. Covers the <code>nlweb-samples</code> repository (HEAD <code>a234ab6</code>, 2026-10-05) as deployed to five Cloud Run services (<code>nlweb-reviews</code>, <code>nlweb-recipes</code>, <code>nlweb-homes</code>, <code>nlweb-movies</code>, <code>nlweb-trails</code>) and the static front end at <code>neuralweb.dev/samples/</code>. Paths are relative to the repo root; line references are into that revision. Sibling documents: <a href="/design/ard/">ARD</a>, <a href="/design/neural-db/">NeuralKG2</a>, <a href="/design/qdrss/">QDRSS</a>.</em></p>
+<h2>0. How to read this</h2>
+<p>The NLWeb samples let a person <strong>ask for things in natural language</strong> (a robot vacuum for two cats and a long-haired dog; a showstopper Thanksgiving main that is vegan and gluten-free; a 4-bedroom house with a pool) and get back a list of real items, each with a one-sentence reason, optionally with a short written summary. There are five datasets, each its own service:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Sample (page)</th>
+<th>Dataset</th>
+<th>Items</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recipes</td>
+<td>NYT Cooking</td>
+<td>24,287</td>
+</tr>
+<tr>
+<td>Movies</td>
+<td>IMDb</td>
+<td>28,031</td>
+</tr>
+<tr>
+<td>Reviews</td>
+<td>Wirecutter</td>
+<td>4,000</td>
+</tr>
+<tr>
+<td>Trails</td>
+<td>AllTrails</td>
+<td>16,352</td>
+</tr>
+<tr>
+<td>Homes</td>
+<td>Zillow</td>
+<td>1,066</td>
+</tr>
+</tbody>
+</table></div>
+<p>The five counts sum to 73,736, matching <code>src/askhub/corpus/.manifest.json</code> (snapshot <code>58d55061fe9b</code>, built 2026-10-02).</p>
+<p><strong>What "NLWeb" means here.</strong> This is not Microsoft's NLWeb codebase. The server is a Python/Starlette app (package <code>askhub</code>, console script <code>ask-samples</code>) that the README describes as <code>ask-hf-hub</code> "with the corpus swapped" (<code>README.md:25-27</code>; the parent repo <code>rvguha/HFNLW</code> is not on the VM). It is NLWeb-compatible <strong>by protocol</strong>: the <code>/ask</code> and <code>/mcp</code> endpoints and the server-sent-event message types (<code>begin-nlweb-response</code>, <code>nlws</code>, <code>end-nlweb-response</code>) follow NLWeb (<code>pipeline.py:61,295</code>; <code>models.py:426-434</code>).</p>
+<h3>Words used throughout</h3>
+<ul>
+<li><strong>Site / kind</strong>: one of the five datasets. A request names the one to search (<code>site=recipes</code>).</li>
+<li><strong>Record / document</strong>: one item (a recipe, a movie, a trail...), stored as a schema.org JSON object.</li>
+<li><strong>Fields</strong>: each record is split into three searchable fields, <code>name</code>, <code>description</code> and <code>body</code>.</li>
+<li><strong>BM25F</strong>: keyword scoring over those fields. <strong>Vector score</strong>: similarity of the query embedding to each field's embedding.</li>
+<li><strong>Candidate</strong>: a record retrieved for ranking. <strong>Ranker</strong>: the model that judges candidates strong, relevant or neither.</li>
+<li><strong>Describer</strong>: a second model that writes the shown one-sentence descriptions and the summary (recipes and reviews only).</li>
+<li><strong>Triage / restrictions</strong>: a cheap model call that decides how hard a recipe request is and extracts dietary constraints.</li>
+<li><strong>Mode</strong>: <code>list</code> (results only), <code>summarize</code> (results plus a short summary), <code>generate</code> (results plus an answer).</li>
+</ul>
+<h2>1. System map</h2>
+<pre class="mermaid">flowchart LR
+  B[Browser&lt;br/&gt;neuralweb.dev/samples/KIND/] --&gt;|POST /ask, SSE| S[nlweb-KIND&lt;br/&gt;Cloud Run, 1 instance]
+  W[wake page] --&gt;|GET /health x5| S
+  S --&gt; MEM[(In-memory index&lt;br/&gt;recipes, reviews)]
+  S --&gt; COS[(Cosmos DB&lt;br/&gt;trails, movies, homes)]
+  S &lt;--&gt;|embed, decontextualize, rank, describe| OR[(OpenRouter)]
+  GCS[(GCS bucket&lt;br/&gt;snapshot per site)] --&gt;|download at start| S
+</pre>
+<p>Each service is the <strong>same image</strong> (<code>python:3.12-slim</code>, code only); it downloads its data from <code>gs://neuralweb-nlweb-&lt;kind&gt;</code> at start (<code>Dockerfile:1-37</code>, <code>tools/deploy_cloudrun.sh:13-80</code>). Cloud Run settings: <code>--cpu 1 --cpu-boost --min-instances 0 --max-instances 1 --concurrency 20 --timeout 300</code>; memory 1 GiB (homes, reviews), 2 GiB (trails), 3 GiB (movies, recipes). Because the minimum is zero, an idle service sleeps (a cold start took 27 to 30 s against about 3 s warm, <code>deploy_cloudrun.sh:36-40</code>); the <strong>wake page</strong> pings <code>/health</code> on all five to warm them (<code>static/wake.html</code>).</p>
+<p>Store per site: recipes and reviews are held in memory from a snapshot; trails, movies and homes use Azure Cosmos DB (database <code>samples</code>, container <code>items</code>, one partition per site). Recipes and reviews moved off Cosmos on 2026-10-04 because it was slower (<code>deploy_cloudrun.sh:23-26</code>).</p>
+<h2>2. What exists before any query (ingestion and index)</h2>
+<ol>
+<li><strong>Crawl to JSONL</strong> (<code>tools/convert.py</code>). Crawled pages hold schema.org JSON-LD. The converter keeps one main entity per page by type (Recipe; Movie, TVSeries, TVEpisode; Article, NewsArticle; LocalBusiness; SingleFamilyResidence, RealEstateListing, House), drops images and publisher boilerplate, caps <code>review</code> at 3 entries and strings at 1,500 characters, folds Wirecutter's sibling <code>Product</code> and <code>ItemList</code> names into <code>hasPart</code> so product names are searchable, keeps one image URL for the card, and de-duplicates by URL (<code>convert.py:23-152</code>).</li>
+<li><strong>Split into fields</strong> (<code>adapters.py</code>). <code>name</code> from name, alternate name and headline; <code>description</code> from description and alternative headline; <code>body</code> from every other string or number, each prefixed by its property name (for example <code>recipeCuisine Italian</code>), URLs removed (<code>adapters.py:200-343</code>).</li>
+<li><strong>Embed</strong> (<code>tools/embed.py</code>). Each record gets <strong>three</strong> embeddings, one per field, with <code>openai/text-embedding-3-small</code> through OpenRouter (1536 dimensions, L2-normalised; empty fields are zero vectors). Batches of 64, inputs cut at 24,000 characters, concurrency 8, up to 6 retries. About 31 million tokens, about $0.60 for all five sites (README).</li>
+<li><strong>Index</strong> (<code>catalog.py</code>). Keyword scoring is BM25F computed in numpy: <code>k1 = 1.5</code>, field weights <code>name 32, description 1, body 0.5</code>, <code>b = 0.75</code> (<code>config.py:55-56</code>); query tokens are lowercase <code>[a-z0-9]+</code> with stopwords removed. Vector scoring is the weighted sum of the three per-field dot products with weights 1/1/1 (<code>catalog.py:167-180</code>).</li>
+<li><strong>Snapshot</strong> (<code>tools/build_snapshot.py</code>). <code>catalog.pkl</code> plus per-field <code>.npy</code> vectors, so a service starts in about 1 s instead of about 41 s for recipes (<code>Dockerfile:10-13</code>). For the Cosmos sites a keyword-only snapshot is built and the vectors live in Cosmos (<code>tools/load_cosmos.py</code>, one <code>quantizedFlat</code> vector index per field).</li>
+</ol>
+<h2>3. A query, from click to card</h2>
+<h3>3.1 In the browser (<code>static/app.js</code>, <code>cards.js</code>, <code>threadstore.js</code>, <code>config.js</code>)</h3>
+<ol>
+<li><strong>Scope.</strong> <code>/samples/&lt;kind&gt;/</code> serves <code>ask.html</code>; the scope is the last path segment. <code>config.js</code> maps each kind to its Cloud Run URL (<code>window.NLWEB_API</code>); the endpoint is <code>&lt;service&gt;/ask</code> (<code>app.js:21-24</code>).</li>
+<li><strong>Request.</strong> A <code>fetch</code> POST with <code>Accept: text/event-stream</code> and a JSON body (<code>app.js:162-167, 308-310</code>):</li>
+</ol>
+<p><code>json
+   {"query": "...", "site": "recipes", "mode": "summarize",
+    "previous_queries": ["...up to 5 earlier turns..."],
+    "previous_results": ["...names of the top 10 shown last..."],
+    "ranking_model": "..."}</code>
+   <code>previous_queries</code> carries each earlier turn as its interpreted form; <code>ranking_model</code> is sent only if the user picked one. The mode picker offers <code>list</code> and <code>summarize</code>; <code>generate</code> is not reachable from the page.
+3. <strong>Streaming.</strong> The reader splits the stream on blank lines and handles each event by type (<code>app.js:174-197, 316-357</code>): <code>candidate</code> draws provisional cards the moment the ranker names them; the first <code>result</code> clears them and each <code>result</code> adds a final card; <code>nlws</code> sets the summary; <code>restrictions</code> shows "diet: ... · ranked by ..."; <code>decontextualized_query</code> shows "interpreted as: ..."; <code>usage</code> fills the cost dialog; <code>end-nlweb-response</code> closes with "N results · tokens · $cost".
+4. <strong>Cards</strong> (<code>cards.js:128-275</code>). The layout follows the schema.org <code>@type</code> (recipe, movie, review, trail, home). Trail length, loop shape, difficulty and dog rules are read from the description text by regular expressions; homes show price, beds and baths, size, lot and schools. The shown description is the model's one-sentence reason. Links allow http(s) only.
+5. <strong>State is in the browser.</strong> Conversations live in IndexedDB (<code>ask-samples</code>, stores <code>threads</code> and <code>turns</code>, gzip per turn) and only the ranking-model choice and sidebar state are in localStorage. The server keeps nothing between requests: context is whatever the client sends (<code>threadstore.js:3-6</code>).</p>
+<h3>3.2 On the server (<code>app.py</code>, <code>pipeline.py</code>)</h3>
+<p><strong>Front door.</strong> Middleware rate-limits <code>/ask</code> and MCP <code>ask</code> calls (<code>rate_limit.py:154-172</code>) and applies CORS for <code>https://neuralweb.dev</code>. <code>ask_route</code> accepts GET or POST, merges query-string and JSON parameters, and validates them: <code>mode</code> (default <code>summarize</code>), <code>retrieval</code> (<code>vector</code>, <code>bm25</code> or <code>compare</code>, default <code>compare</code>), <code>max_results</code> 10, <code>min_score</code> 70, <code>previous_results</code> capped at 10, optional <code>ranking_model</code> and counts. Bad values are a 400; a service that has not loaded yet is a 503 "Service is starting" (<code>app.py:85-179</code>). The reply is a server-sent-event stream; each event is <code>{message_id, message_type, query_id, sequence, timestamp, content}</code>.</p>
+<p><strong><code>search()</code> is a generator that emits events as it goes</strong> (<code>pipeline.py:51-301</code>):</p>
+<ol>
+<li><strong><code>begin-nlweb-response</code>.</strong> An empty query ends with an <code>error</code> event.</li>
+<li><strong>Decontextualize</strong> (only when <code>previous_queries</code> is non-empty). One call to the general model (<code>gpt-oss-120b</code>, effort low) with the earlier queries and the last results, returning <code>{standalone_query, changed}</code> so "now only the vegan ones" becomes a complete query. Timeout 15 s. <strong>It fails open:</strong> on any error the original query is searched (<code>pre_retrieval.py:25-79</code>). A rewrite is announced with <code>decontextualized_query</code>.</li>
+<li><strong>Fast track.</strong> On a first turn, retrieval and ranking start immediately on the raw query in parallel with the other steps, and are cancelled and restarted only if a rewrite or a restriction changed the plan (<code>pipeline.py:94-145</code>).</li>
+<li><strong>Triage</strong> (recipes only). A cheap call (timeout 4 s) returns a <code>tier</code> (simple or hard) and typed constraints. Dietary constraints become <strong>restrictions</strong>: the ranking prompt is told to check for hidden ingredients and to allow substitutions of up to 40 words. A failed triage is treated as hard (<code>triage.py:272-284</code>). The events <code>restrictions</code> and <code>triage</code> are emitted.</li>
+<li><strong>Retrieve</strong> (<code>_retrieve_and_rank</code>, <code>pipeline.py:304-636</code>). BM25 returns 20 candidates; vector search returns 20 more, excluding the ones BM25 already found, so about 40 candidates. The query embedding runs concurrently with BM25. If the embedding or the vector search fails, a notice says so and the BM25 results are ranked (<code>pipeline.py:548-572</code>).</li>
+<li><strong>Rank</strong> with a model. The default is <code>openai/gpt-oss-20b</code> (effort low, 800 output tokens), routed to the providers <code>coreweave</code>, <code>novita</code>, <code>groq</code> in order.
+   - The candidates are dealt round-robin into 3 batches of about 13 and ranked <strong>in parallel</strong> (<code>pipeline.py:607-623</code>).
+   - Each batch sees a projection of every record limited to the fields that matter for the site (lists cut to 20 items, strings to 1,000 characters; <code>config.py:16-33</code>) and the instruction "Act as a relevance filter, not a ranker": pick <strong>at most 3</strong> records, mark each <code>strong</code> or <code>relevant</code>, and give a "why" of at most 25 words (<code>pipeline.py:395-438</code>).
+   - Verdicts are <strong>categorical</strong>, not numeric: strong maps to 90, relevant to 70. The result order is strong first, then relevant, with input order kept inside each band; duplicates (same site and name) are removed and the list is cut to 10 (<code>pipeline.py:765-789, 628-636</code>).
+   - Each verdict is streamed to the browser as a <code>candidate</code> event the moment its JSON object closes, so the first cards appear while the other batches are still thinking (<code>pipeline.py:474-512</code>).</li>
+<li><strong>Expand</strong> (on by default). One call (timeout 6 s) proposes search terms and up to 10 well-known item names. Names are searched by BM25 (top 5) and kept only when the record's name matches exactly after normalisation; terms yield up to 10 more candidates. The new candidates go through the same ranking and the results are merged. Errors are swallowed (<code>expansion.py</code>, <code>pipeline.py:665-738</code>).</li>
+<li><strong>Describe</strong> (recipes and reviews). One streamed call to <code>google/gemini-3.8-flash</code> over the top 8 results writes a one-sentence description for each (30 words or fewer, only from the record's own JSON) and a 2 to 4 sentence summary, and may <strong>drop</strong> items that are not the requested kind of thing or fail a stated requirement. It exists because the 20B ranker stated unsupported product facts in about a quarter of its descriptions in a 30-question Wirecutter test on 2026-10-05 (<code>pipeline.py:219-278, 873-946</code>). If the describer fails, the results show with the ranker's own reasons; if it drops everything, the ranked top items are restored.</li>
+<li><strong>Simple tier</strong> (recipes). If triage says the request is simple, expansion and the describer are skipped; each result shows the page's own markup description (cut at 280 characters) and a short summary from <code>google/gemini-2.5-flash-lite</code>.</li>
+<li><strong>Movies, trails and homes</strong> have no describer: the ranker's "why" is the description.</li>
+<li><strong>Mode.</strong> <code>list</code> stops at the results. <code>summarize</code> uses the describer's summary, or composes one with the general model. <code>generate</code> composes an answer to the question. Both emit <code>nlws {answer, items}</code>. If the model's JSON is unreadable, a template lists the top 4 names with their descriptions (<code>pipeline.py:954-1041</code>).</li>
+<li><strong>Closing events:</strong> notices (<code>intermediate_message</code>), <code>usage</code> (a per-model token and cost ledger), <code>complete</code>, <code>end-nlweb-response</code>.</li>
+</ol>
+<p><strong>Result items on the wire:</strong> <code>{"@type":"Item", url, name, site, score, relevance, description, vector_score, bm25_score, retrieval_source, schema_object}</code>, where <code>schema_object</code> is the full schema.org record (<code>models.py:401-414</code>).</p>
+<h2>4. Endpoints, limits and state</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code>/<code>POST /ask</code></td>
+<td>the SSE search</td>
+</tr>
+<tr>
+<td><code>GET /health</code></td>
+<td><code>{status, items, sites, collections, embedding_cache_hit, corpus, sources}</code>, or 503 while starting</td>
+</tr>
+<tr>
+<td><code>/recipes</code>, <code>/movies</code>, <code>/reviews</code>, <code>/trails</code>, <code>/homes</code></td>
+<td>serve <code>ask.html</code></td>
+</tr>
+<tr>
+<td><code>POST /mcp</code></td>
+<td>MCP over streamable HTTP: tools <code>list_sites</code> and <code>ask</code>; <code>ask</code> drains the search into one JSON object <code>{query, effective_query, items, notices, answer?, usage?}</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>No authentication (Cloud Run is <code>--allow-unauthenticated</code>; the model key lives only on the server). <strong>Rate limits</strong> (<code>rate_limit.py:56-96</code>, Dockerfile): 10 requests per minute per client, 1,000 per hour and 10,000 per day overall, 4 concurrent paid queries; a violation is a 429 with <code>retry_after</code>. Per-request caps: 200 candidates for retrieval and for ranking. Because the instance count is capped at 1, all of this is per service.</p>
+<h2>5. Models and timeouts</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Embeddings (corpus and query)</td>
+<td><code>openai/text-embedding-3-small</code></td>
+</tr>
+<tr>
+<td>Decontextualize, triage, expansion, summary, answer</td>
+<td><code>openai/gpt-oss-120b</code>, effort low, provider sort throughput</td>
+</tr>
+<tr>
+<td>Relevance ranking</td>
+<td><code>openai/gpt-oss-20b</code>, effort low, 800 tokens, providers <code>coreweave;novita;groq</code></td>
+</tr>
+<tr>
+<td>Describer (recipes, reviews)</td>
+<td><code>google/gemini-3.8-flash</code></td>
+</tr>
+<tr>
+<td>Recipes simple-tier summary</td>
+<td><code>google/gemini-2.5-flash-lite</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Explicit timeouts: decontextualize 15 s, triage 4 s, expansion 6 s. The ranking, describer and compose calls have no explicit timeout (the SDK default applies); the Cloud Run request limit is 300 s. The page's ranking-model picker offers Auto and eight serving models; the server also accepts a few reference models.</p>
+<h2>6. Deterministic and model-driven parts</h2>
+<p>Deterministic: parsing and validation, rate limiting, BM25F, vector scoring, merging the two candidate lists, banding, de-duplication, the result cut, name-matching of expansion suggestions, card rendering and the trail regexes. Model-driven: the rewrite, triage, expansion, <strong>the relevance judgment (there is no numeric threshold on retrieval scores; the ranker is the filter)</strong>, the descriptions, the summary and the answer.</p>
+<p>There is no server-side memory, tool router or "is this query relevant to this site" gate. The homes sample has no real-estate tools either: no price or bedroom parsing, no geography, no school lookup, no sort by field. "Under $2M with 4 bedrooms" and "newest construction over 2,500 sq ft" are judged by the ranker from each record's JSON alone.</p>
+<h2>7. Failure behaviour</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>What fails</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Decontextualization times out or errors</td>
+<td>the original query is searched, silently</td>
+</tr>
+<tr>
+<td>Triage fails</td>
+<td>treated as a hard request</td>
+</tr>
+<tr>
+<td>Expansion fails</td>
+<td>no expansion, silently</td>
+</tr>
+<tr>
+<td>Embedding or vector search fails</td>
+<td>a notice, and BM25 results are ranked</td>
+</tr>
+<tr>
+<td>One ranking batch errors</td>
+<td>swallowed: verdicts already streamed count, the rest are lost, and nothing tells the reader. If every batch fails the result is empty</td>
+</tr>
+<tr>
+<td>The main ranking path raises</td>
+<td>everything is cancelled and re-run once without expansion; a second failure ends the stream without <code>end-nlweb-response</code></td>
+</tr>
+<tr>
+<td>No results</td>
+<td>the notice "No matching results found." and no summary</td>
+</tr>
+<tr>
+<td>Describer fails</td>
+<td>results show with the ranker's reasons</td>
+</tr>
+<tr>
+<td>Compose fails</td>
+<td>the notice "Answer generation unavailable", or a template summary if the model's JSON is unreadable</td>
+</tr>
+<tr>
+<td>No <code>OPENROUTER_API_KEY</code></td>
+<td>retrieval only, ordered by retrieval score, with a notice</td>
+</tr>
+<tr>
+<td>Cold or loading service</td>
+<td>503 "Service is starting"; cold requests took 27 to 30 s</td>
+</tr>
+<tr>
+<td>Rate limit</td>
+<td>429 with <code>retry_after</code></td>
+</tr>
+</tbody>
+</table></div>
+<h2>8. Open issues</h2>
+<ul>
+<li>A ranking batch can fail without telling the reader, and a second failure can end the stream without its closing event, so the page cannot tell an empty answer from a broken one.</li>
+<li>The ranking, describer and compose calls have no explicit timeout.</li>
+<li>Numeric and sorting questions (price, bedrooms, year built) rely entirely on the model; the homes page itself notes that "newest construction" is sorting, not filtering.</li>
+<li><code>Dockerfile</code> sets the trusted proxy list to <code>*</code>, so a client can influence the rate-limit key through <code>X-Forwarded-For</code>.</li>
+<li>One instance per service means cold starts and a shared limit; the wake page is a workaround.</li>
+<li>Data refresh is disabled in production: a catalog update means copying files into the bucket and restarting.</li>
+<li>Dormant code from the parent project (<code>hf:Model</code> handling, benchmark comments) remains.</li>
+<li>There is no <code>/health</code> activity report like the other services (no counts, last request time or latency); only item counts and readiness.</li>
+<li>The corpus files and embeddings are not in the repository, so item counts in this document come from the README and manifest, not from inspecting the buckets.</li>
+</ul>
+<h2>9. File map</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Server, routes, SSE</td>
+<td><code>src/askhub/app.py</code>, <code>pipeline.py</code>, <code>models.py</code></td>
+</tr>
+<tr>
+<td>Retrieval</td>
+<td><code>src/askhub/catalog.py</code>, <code>cosmos_catalog.py</code>, <code>adapters.py</code></td>
+</tr>
+<tr>
+<td>Pre-retrieval model calls</td>
+<td><code>pre_retrieval.py</code>, <code>triage.py</code>, <code>expansion.py</code></td>
+</tr>
+<tr>
+<td>Models and providers</td>
+<td><code>providers.py</code>, <code>ranking_models.py</code>, <code>config.py</code></td>
+</tr>
+<tr>
+<td>MCP</td>
+<td><code>mcp_api.py</code></td>
+</tr>
+<tr>
+<td>Limits</td>
+<td><code>rate_limit.py</code></td>
+</tr>
+<tr>
+<td>Front end</td>
+<td><code>src/askhub/static/</code> (<code>app.js</code>, <code>cards.js</code>, <code>threadstore.js</code>, <code>config.js</code>, <code>ask.html</code>, <code>wake.html</code>)</td>
+</tr>
+<tr>
+<td>Build and deploy</td>
+<td><code>tools/convert.py</code>, <code>embed.py</code>, <code>build_snapshot.py</code>, <code>load_cosmos.py</code>, <code>build_site.py</code>, <code>deploy_cloudrun.sh</code></td>
+</tr>
+<tr>
+<td>Sources</td>
+<td><code>sources.yaml</code></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: true, theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default', securityLevel: 'strict' });
+</script>
+</body>
+</html>
