@@ -243,3 +243,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows:
 
 .sample-order { width: 100%; margin: 0 0 4px; color: #52607d; font-size: .85rem; }
 .usage-note { margin: 8px 0 12px; padding: 8px 10px; background: #eef2fb; border-radius: 6px; font-size: .9rem; color: #2f3a52; }
+
+/* A quiet link to the design document in the top bar. */
+.how-link { flex: 0 0 auto; font-size: .78rem; color: #3b5ccc; white-space: nowrap; }
+@media (max-width: 560px) { .how-link { display: none; } }

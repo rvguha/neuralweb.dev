@@ -24,10 +24,15 @@
     .source { color: var(--muted); font-size: .9rem; }
     .about { font-size: .92rem; color: var(--ink); }
     .example { margin-top: 2px; font-size: .92rem; color: var(--ink); font-style: italic; }
+  
+    .topnav { text-align: right; font-size: .85rem; margin: 0 0 12px; display: flex; gap: 14px; justify-content: flex-end; flex-wrap: wrap; }
+    .topnav a { color: var(--accent, #3b5ccc); }
   </style>
 </head>
 <body>
   <main>
+    <p class="topnav"><a href="/design/qdrss/">How it works: Query-defined RSS</a> <a href="/design/nlweb/">NLWeb samples</a></p>
+
     <h1>The New York Times on NeuralWeb</h1>
     <p class="lede">Natural-language search over three New York Times sources.</p>
     <nav class="grid" aria-label="New York Times sources">
@@ -62,7 +67,6 @@
         <a class="code" href="https://github.com/rvguha/nlweb-samples">Code: rvguha/nlweb-samples</a>
       </div>
     </nav>
-    <p style="margin:24px 0 0;color:#52607d;font-size:.92rem">How it works: <a href="/design/qdrss/">Query-defined RSS</a> &middot; <a href="/design/nlweb/">NLWeb samples</a></p>
   </main>
 </body>
 </html>

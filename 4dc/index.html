@@ -27,10 +27,15 @@
     .tag { display: inline-block; margin: 2px 4px 0 0; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .78rem; color: var(--muted); }
     .claim { font-size: 1.05rem; }
     .err { color: #c0392b; }
+  
+    .topnav { text-align: right; font-size: .85rem; margin: 0 0 12px; display: flex; gap: 14px; justify-content: flex-end; flex-wrap: wrap; }
+    .topnav a { color: var(--accent, #3b5ccc); }
   </style>
 </head>
 <body>
   <main>
+    <p class="topnav"><a href="/design/neural-db/">How it works: Neural DB</a> <a href="/design/ard/">ARD</a></p>
+
     <h1>Data Commons on NeuralWeb</h1>
     <p class="lede">Two ways to use <a href="https://datacommons.org">Google Data Commons</a> statistics: find which variable documents describe a quantity, or ask a question and get the values.</p>
     <style>
@@ -55,7 +60,6 @@
       </a>
     </nav>
     <p class="meta" style="margin-top:28px">Code: <a href="https://github.com/rvguha/ard-finder">rvguha/ard-finder</a> &middot; <a href="https://github.com/rvguha/NeuralKG2">rvguha/NeuralKG2</a></p>
-    <p class="meta" style="margin-top:8px">How it works: <a href="/design/neural-db/">Neural DB</a> &middot; <a href="/design/ard/">ARD finder</a></p>
   </main>
 </body>
 </html>
