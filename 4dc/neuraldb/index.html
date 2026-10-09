@@ -19,6 +19,9 @@
   <div class="crumb"><a href="../">&larr; Data Commons</a></div>
   <iframe id="neuraldb" title="Neural DB over Data Commons" src="https://kg.neuralweb.dev/?sources=datacommons"></iframe>
   <script>
+    // A shared link /4dc/neuraldb/?q=... asks that question in the framed page.
+    const shared = new URLSearchParams(location.search).get('q');
+    if (shared) document.getElementById('neuraldb').src = 'https://kg.neuralweb.dev/?sources=datacommons&q=' + encodeURIComponent(shared.slice(0, 400));
     // The framed page reports how tall its content is, so this page scrolls instead of the frame.
     addEventListener('message', e => {
       if (e.origin !== 'https://kg.neuralweb.dev' || !e.data || e.data.type !== 'neuralkg-height') return;
