@@ -74,6 +74,18 @@ details.ep > summary::-webkit-details-marker { display:none; }
 .qtable td.when { white-space:nowrap; font:12px var(--mono); color:var(--muted); }
 .qtable td.sum { color:var(--muted); font-size:.88rem; overflow-wrap:anywhere; }
 .qtable td.grp { color:var(--muted); font-size:.82rem; }
+.health { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+.hcard { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px 16px; display:grid; gap:8px; min-width:0; }
+.hcard h3 { margin:0; font:600 1.05rem var(--display); display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+.hcard dl { margin:0; display:grid; grid-template-columns:auto 1fr; gap:3px 14px; font-size:.88rem; }
+.hcard dt { color:var(--muted); } .hcard dd { margin:0; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.hcard .msg { color:var(--muted); font-size:.85rem; }
+.qtable a.q { color:var(--ink); text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px; }
+.qtable a.q:hover { text-decoration-color:var(--accent); color:var(--accent); }
+.qtable td.lk { white-space:nowrap; font:12px var(--mono); }
+.qtable td.lk a { color:var(--accent); }
+.ep-links { font:12px var(--mono); display:flex; gap:12px; flex-wrap:wrap; }
+.ep-links a { color:var(--accent); }
 .qtable tr.detail td { background:var(--chip); font-size:.86rem; }
 .qtable tr.detail ul { margin:4px 0 0; padding-left:18px; display:grid; gap:3px; }
 .qtable tr.detail b { font:600 11.5px var(--mono); text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
@@ -88,6 +100,10 @@ details.ep > summary::-webkit-details-marker { display:none; }
     <div class="stamp" id="stamp"></div>
   </header>
   <div class="tiles" id="tiles"></div>
+  <div style="display:grid;gap:10px">
+    <h2>Service health</h2>
+    <div class="health" id="health"></div>
+  </div>
   <div id="groups" style="display:grid;gap:18px"></div>
   <div style="display:grid;gap:10px">
     <h2>Every question, when it was tested, and what came back</h2>
@@ -172,6 +188,49 @@ Promise.all(rows.map(probe)).then(() => {
   $('stamp').textContent = 'Checked live ' + new Date().toLocaleString() + ' · revisions and open work as of ' + DATA.at;
 });
 
+// ---- links to every endpoint and every query ----
+const enc = encodeURIComponent;
+const HEALTH = { 'neural-db': 'https://kg.neuralweb.dev/health', datacommons: 'https://kg.neuralweb.dev/health',
+                 ard: 'https://ard.neuralweb.dev/health', nyt: 'https://rss.neuralweb.dev/health', npr: 'https://rss.neuralweb.dev/health',
+                 tal: 'https://rss.neuralweb.dev/health' };
+const COLLECTION = { nyt: 'nytimes', npr: 'npr', tal: 'tal' };
+// "open" runs the query on the page people use; "raw" is the answer as the service returns it.
+function linksFor(id, q) {
+  switch (id) {
+    case 'neural-db': return { open: 'https://kg.neuralweb.dev/?q=' + enc(q), raw: 'https://kg.neuralweb.dev/ask?query=' + enc(q) };
+    case 'datacommons': return { open: 'https://neuralweb.dev/4dc/neuraldb/?q=' + enc(q), raw: 'https://kg.neuralweb.dev/ask?sources=datacommons&query=' + enc(q) };
+    case 'ard': return { open: 'https://neuralweb.dev/4dc/ard/?q=' + enc(q), raw: '' };
+    default: return { open: 'https://rss.neuralweb.dev/' + id + '?q=' + enc(q),
+                      raw: 'https://rss.neuralweb.dev/feed.xml?collection=' + COLLECTION[id] + '&limit=40&since=' + (id === 'tal' ? '1990-01-01' : '2000-01-01') + '&q=' + enc(q) };
+  }
+}
+
+// ---- service health: each service's own /health, read from the browser ----
+const SERVICES = [['Neural DB', 'https://kg.neuralweb.dev', 'questions'], ['ARD finder', 'https://ard.neuralweb.dev', 'searches'], ['Query-defined RSS', 'https://rss.neuralweb.dev', 'feed_requests']];
+const ago = sec => sec == null ? 'never' : sec < 90 ? Math.round(sec) + ' s ago' : sec < 5400 ? Math.round(sec / 60) + ' min ago' : (sec / 3600).toFixed(1) + ' h ago';
+const uptime = sec => sec < 5400 ? Math.round(sec / 60) + ' min' : sec < 172800 ? (sec / 3600).toFixed(1) + ' h' : (sec / 86400).toFixed(1) + ' days';
+for (const [name, base, key] of SERVICES) {
+  const card = el('div', 'hcard'); const h = el('h3'); const a = el('a', '', name); a.href = base + '/health'; a.target = '_blank'; a.rel = 'noopener'; a.style.color = 'inherit';
+  const pill = el('span', 'pill', 'checking'); h.append(a, pill); card.append(h); $('health').append(card);
+  fetch(base + '/health', { cache: 'no-store' }).then(r => r.json()).then(d => {
+    const bad = d.status && d.status !== 'ok' || d.ok === false;
+    pill.textContent = d.status || (d.ok ? 'ok' : 'down'); pill.className = 'pill' + (bad ? ' bad' : '');
+    const work = d[key] || {}; const dl = el('dl');
+    const row = (k, v) => { if (v == null || v === '') return; dl.append(el('dt', '', k), el('dd', '', String(v))); };
+    row('Revision', d.revision); row('Up for', d.uptime_seconds != null ? uptime(d.uptime_seconds) : '');
+    row(key === 'questions' ? 'Questions answered' : key === 'searches' ? 'Searches answered' : 'Feed requests', work.total);
+    row('Last one', work.seconds_since_last !== undefined ? ago(work.seconds_since_last) + (work.last_at ? ' (' + fmt(work.last_at) + ')' : '') : '');
+    const lat = work.latency_seconds; if (lat && lat.p50 != null) row('Latency', 'median ' + lat.p50 + ' s, 95th ' + lat.p95 + ' s');
+    row('Errors', work.errors != null ? work.errors : work.server_errors); row('Last error', work.last_error);
+    if (d.capacity) row('Busy slots', d.capacity.in_use + ' of ' + d.capacity.slots);
+    if (d.degraded_because) row('Degraded because', d.degraded_because.join('; '));
+    if (d.entries) row('Index', d.entries.toLocaleString() + ' entries'); if (d.items) row('Items', d.items.toLocaleString());
+    if (d.sources_summary) row('Sources failing', d.sources_summary.failing + ' of ' + d.sources_summary.total);
+    card.append(dl);
+    if (!d.started_at) card.append(el('div', 'msg', 'This service has not been updated to report activity yet.'));
+  }).catch(() => { pill.textContent = 'unreachable'; pill.className = 'pill bad'; card.append(el('div', 'msg', 'Its /health could not be read from this page.')); });
+}
+
 // ---- the test ledger: results.json is written by tools/status_ledger.py ----
 const fmt = iso => new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 let filter = 'all';
@@ -186,21 +245,27 @@ function drawLedger() {
     const sum = el('summary'); const line = el('div', 'sumline'); line.append(el('h3', '', ep.name));
     const c = el('div', 'counts');
     for (const k of ['pass', 'partial', 'fail']) if (counts[k]) c.append(el('span', 'pill ' + k, counts[k] + ' ' + k));
+    const nameLink = el('a', '', ep.name); nameLink.href = ep.url; nameLink.target = '_blank'; nameLink.rel = 'noopener'; nameLink.style.color = 'inherit'; nameLink.addEventListener('click', e => e.stopPropagation()); line.firstChild.replaceChildren(nameLink);
     line.append(c, el('span', 'when', ep.tests.length + ' questions · tested ' + fmt(times[0]) + (times.length > 1 && fmt(times[0]) !== fmt(times[times.length - 1]) ? ' to ' + fmt(times[times.length - 1]) : '')));
-    sum.append(line, el('div', 'how', ep.how)); d.append(sum);
+    const epl = el('div', 'ep-links'); const addLink = (label, href) => { const a = el('a', '', label); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', e => e.stopPropagation()); epl.append(a); };
+    addLink('open ' + ep.url.replace('https://', '').replace(/\/$/, ''), ep.url); const hl = HEALTH[ep.id]; if (hl) addLink('health', hl);
+    sum.append(line, el('div', 'how', ep.how), epl); d.append(sum);
     const wrap = el('div', 'qtable'); const table = el('table');
     const head = el('thead'); const hr = el('tr'); const hasMix = ep.tests.some(t => t.detail && t.detail.variety);
-    for (const h of ['Question', 'Group', 'Tested', 'Result', 'What came back'].concat(hasMix ? ['Variety of sources'] : [])) hr.append(el('th', '', h)); head.append(hr); table.append(head);
+    for (const h of ['Question', 'Group', 'Tested', 'Result', 'What came back'].concat(hasMix ? ['Variety of sources'] : []).concat(['Links'])) hr.append(el('th', '', h)); head.append(hr); table.append(head);
     const body = el('tbody');
     for (const t of ep.tests.filter(t => filter === 'all' || t.outcome === filter)) {
       const tr = el('tr', 'q'); tr.tabIndex = 0;
-      const q = el('td', '', t.question); const g = el('td', 'grp', t.group || '');
+      const links = linksFor(ep.id, t.question);
+      const q = el('td'); if (links.open) { const qa = el('a', 'q', t.question); qa.href = links.open; qa.target = '_blank'; qa.rel = 'noopener'; qa.addEventListener('click', e => e.stopPropagation()); q.append(qa); } else q.textContent = t.question;
+      const g = el('td', 'grp', t.group || '');
       const w = el('td', 'when', fmt(t.tested_at)); w.title = t.tested_at;
       const r = el('td'); r.append(el('span', 'pill ' + t.outcome, t.outcome));
       tr.append(q, g, w, r, el('td', 'sum', t.summary));
       const mix = t.detail && t.detail.variety;
       if (hasMix) tr.append(el('td', 'sum', mix && mix.sources ? mix.sources + ' ' + mix.unit + ' · biggest ' + Math.round(mix.top_share * 100) + '%' : ''));
-      const more = el('tr', 'detail'); more.hidden = true; const mt = el('td'); mt.colSpan = hasMix ? 6 : 5;
+      const lk = el('td', 'lk'); for (const [label, href] of [['open', links.open], ['raw', links.raw]]) { if (!href) continue; const a = el('a', '', label); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', e => e.stopPropagation()); lk.append(a, ' '); } tr.append(lk);
+      const more = el('tr', 'detail'); more.hidden = true; const mt = el('td'); mt.colSpan = hasMix ? 7 : 6;
       const add = (label, items) => { if (!items || !items.length) return; mt.append(el('b', '', label)); const ul = el('ul'); for (const i of items) ul.append(el('li', '', i)); mt.append(ul); };
       const x = t.detail || {};
       add('Answer', x.claims); add('Failures', x.failures); add('Top results', x.top); add('Notes', x.disclosures);

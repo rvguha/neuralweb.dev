@@ -92,6 +92,9 @@
       go.disabled = false;
     }
     document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); if (q.value.trim()) search(q.value.trim()); });
+    // A shared link /4dc/ard/?q=... runs that search.
+    const sharedQuery = new URLSearchParams(location.search).get('q');
+    if (sharedQuery && sharedQuery.trim()) { q.value = sharedQuery.trim().slice(0, 400); search(q.value); }
     document.querySelectorAll('.examples button, .samples button').forEach(b => b.addEventListener('click', () => { q.value = b.textContent; search(q.value); }));
     </script>
   </main>
