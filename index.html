@@ -30,10 +30,15 @@
   a.code:hover, a.code:focus-visible { color: var(--accent); }
   footer { margin-top: 40px; color: var(--muted); font-size: 14px; }
   footer a { color: var(--muted); }
-</style>
+
+    .topnav { text-align: right; font-size: .85rem; margin: 0 0 12px; display: flex; gap: 14px; justify-content: flex-end; flex-wrap: wrap; }
+    .topnav a { color: var(--accent, #3b5ccc); }
+  </style>
 </head>
 <body>
 <main>
+    <p class="topnav"><a href="/design/">Design documents</a></p>
+
   <h1>NeuralWeb</h1>
   <p class="lede">Research services for answering questions from public data.</p>
 
