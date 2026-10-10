@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>ARD+ answer ratings</title>
+<style>
+html { background: var(--bg); }
+:root { --bg:#f3f5f8; --surface:#ffffff; --ink:#18202e; --muted:#5a6578; --line:#d9dee7; --accent:#2f54c4; --good:#177a45; --good-bg:#e1f3e8; --warn:#8a5a00; --warn-bg:#fdf0d2; --bad:#b3261e; --bad-bg:#fbe4e1; --chip:#e8ecf4;
+  --display:"Newsreader","Iowan Old Style",Georgia,serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#10141b; --surface:#171c26; --ink:#e6eaf2; --muted:#98a2b6; --line:#2a3242; --accent:#8fa9ff; --good:#58c98a; --good-bg:#16301f; --warn:#f0c15a; --warn-bg:#3a2e12; --bad:#ff8a80; --bad-bg:#3b1b19; --chip:#222a39; color-scheme:dark; } }
+:root[data-theme="dark"] { --bg:#10141b; --surface:#171c26; --ink:#e6eaf2; --muted:#98a2b6; --line:#2a3242; --accent:#8fa9ff; --good:#58c98a; --good-bg:#16301f; --warn:#f0c15a; --warn-bg:#3a2e12; --bad:#ff8a80; --bad-bg:#3b1b19; --chip:#222a39; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 var(--body); }
+.wrap { max-width:1040px; margin:0 auto; padding-inline:16px; padding-block:28px 56px; display:grid; gap:28px; }
+a { color:var(--accent); }
+h1 { margin:0; font:600 clamp(1.7rem,4vw,2.3rem)/1.15 var(--display); letter-spacing:-.01em; text-wrap:balance; }
+h2 { margin:0; font:600 1.15rem/1.3 var(--display); }
+.sub { margin:6px 0 0; color:var(--muted); max-width:66ch; }
+.stamp { font:12px var(--mono); color:var(--muted); margin-top:10px; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+.tile { background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px 16px; min-width:0; }
+.tile b { display:block; font:600 1.9rem/1.1 var(--display); font-variant-numeric:tabular-nums; }
+.tile span { color:var(--muted); font-size:.85rem; }
+.lv { display:grid; gap:10px; }
+.lv .sub { margin:0; }
+details.q { background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+details.q > summary { list-style:none; cursor:pointer; padding:12px 16px; display:grid; gap:6px; }
+details.q > summary::-webkit-details-marker { display:none; }
+details.q > summary:hover { background:var(--chip); }
+.qt { font-weight:600; overflow-wrap:anywhere; }
+.line { display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; color:var(--muted); font:12px var(--mono); }
+.pill { font:600 12px var(--mono); padding:2px 8px; border-radius:99px; font-variant-numeric:tabular-nums; }
+.pill.s2 { background:var(--good-bg); color:var(--good); }
+.pill.s1 { background:var(--warn-bg); color:var(--warn); }
+.pill.s0 { background:var(--bad-bg); color:var(--bad); }
+.pill.sx { background:var(--chip); color:var(--muted); }
+.body { border-top:1px solid var(--line); padding:14px 16px; display:grid; gap:12px; font-size:.92rem; }
+.body h4 { margin:0 0 3px; font:600 11.5px var(--mono); text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+.body p { margin:0; max-width:80ch; overflow-wrap:anywhere; }
+.body ul { margin:0; padding-left:18px; display:grid; gap:3px; }
+.legend { color:var(--muted); font-size:.85rem; max-width:80ch; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Newsreader:wght@500;600&display=swap">
+</head>
+<body>
+<div class="wrap">
+  <p style="text-align:right;margin:0;font-size:.85rem"><a href="/status/">Status</a> · <a href="/design/">How it works</a></p>
+  <header>
+    <h1>ARD+ answer ratings</h1>
+    <p class="sub">Twenty-four questions in four levels, from one lookup to open analysis. ARD+ breaks each into questions the Neural DB can answer, asks them, and writes an answer from the replies. A second model then grades each answer against those replies.</p>
+    <div class="stamp" id="stamp">Loading…</div>
+  </header>
+  <div class="tiles" id="tiles"></div>
+  <div id="levels" style="display:grid;gap:26px"></div>
+  <p class="legend"><b>A</b> addresses the question · <b>G</b> grounded (every figure traces to a reply) · <b>H</b> honest (flags stale, mismatched or missing data) · <b>D</b> decomposition (the sub-questions were the right ones). Each is 0 to 2, graded by Claude Opus against the Neural DB replies, not against an outside truth. Cost includes the Neural DB, the answering model and the grader. Open a question for the answer, its sub-questions and the grader's notes.</p>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x !== undefined) e.textContent = x; return e; };
+const pill = (k, v) => el('span', 'pill ' + (v == null ? 'sx' : 's' + v), k + (v == null ? '–' : v));
+const sec = s => s == null ? '' : s.toFixed(0) + ' s';
+fetch('results.json', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(D => {
+  const rows = D.rows, K = ['addresses', 'grounded', 'honest', 'decomposition'], L = ['A', 'G', 'H', 'D'];
+  $('stamp').textContent = 'Results of ' + D.at + ' · ' + rows.length + ' questions graded';
+  const tile = (n, label) => { const t = el('div', 'tile'); t.append(el('b', '', n), el('span', '', label)); return t; };
+  const full = rows.filter(r => K.every(k => r.scores[k] === 2)).length;
+  const avg = k => (rows.reduce((a, r) => a + (r.scores[k] || 0), 0) / rows.length).toFixed(2);
+  const cost = rows.reduce((a, r) => a + r.cost, 0);
+  $('tiles').append(tile(full + '/' + rows.length, 'perfect on all four'), ...K.map((k, i) => tile(avg(k), 'mean ' + L[i] + ' (of 2)')), tile('$' + (cost / rows.length).toFixed(3), 'mean cost per question'));
+  for (const lv of Object.keys(D.levels).sort()) {
+    const rs = rows.filter(r => r.level === lv);
+    if (!rs.length) continue;
+    const box = el('div', 'lv');
+    box.append(el('h2', '', 'Level ' + lv + ' · ' + D.levels[lv]));
+    for (const r of rs) {
+      const d = el('details', 'q'), s = el('summary'), line = el('div', 'line');
+      line.append(...K.map((k, i) => pill(L[i], r.scores[k])), el('span', '', 'confidence ' + (r.confidence || '–')), el('span', '', sec(r.seconds)), el('span', '', '$' + r.cost.toFixed(3)), el('span', '', r.tested));
+      s.append(el('div', 'qt', r.question), line);
+      const b = el('div', 'body');
+      const part = (h, node) => { const w = el('div'); w.append(el('h4', '', h), node); b.append(w); };
+      part('Answer', el('p', '', r.answer));
+      if (r.gaps.length) part('Gaps it states', Object.assign(el('ul'), { innerHTML: '' }));
+      if (r.gaps.length) { const u = b.lastChild.lastChild; r.gaps.forEach(g => u.append(el('li', '', typeof g === 'string' ? g : JSON.stringify(g)))); }
+      const ul = el('ul'); r.subs.forEach(x => ul.append(el('li', '', x.q + ' — ' + x.status + (x.seconds ? ' (' + x.seconds.toFixed(0) + ' s)' : ''))));
+      part('Sub-questions sent to the Neural DB', ul);
+      part('Grader', el('p', '', r.notes + (r.missed ? ' Missed: ' + r.missed : '')));
+      if (r.unverified.length) part('Numbers not found in the replies', el('p', '', r.unverified.join(', ')));
+      d.append(s, b); box.append(d);
+    }
+    $('levels').append(box);
+  }
+}).catch(e => { $('stamp').textContent = 'Could not load results: ' + e.message; });
+</script>
+</body>
+</html>
