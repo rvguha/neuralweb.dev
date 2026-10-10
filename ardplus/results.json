@@ -1,0 +1,987 @@
+{
+ "at": "2026-10-10 12:22 UTC",
+ "levels": {
+  "1": "One lookup: Neural DB can answer it as asked",
+  "2": "Two or three lookups put side by side",
+  "3": "A question that needs several measures and a short argument from them",
+  "4": "Analytical questions: the data informs but does not settle them"
+ },
+ "rows": [
+  {
+   "level": "1",
+   "question": "How has the population of India changed over the last 20 years?",
+   "answer": "Over the last 20 years, the population of India has increased by 309,189,203 people [q1]. According to Google Data Commons, India's population grew from 1,154,676,322 in 2005 to 1,463,865,525 in 2025 [q1].",
+   "confidence": "high",
+   "gaps": [],
+   "unverified": [],
+   "approach": "The original question asks for a specific trend that Neural DB can answer directly, so it is passed through as a single query.",
+   "subs": [
+    {
+     "q": "How has the population of India changed over the last 20 years?",
+     "status": "complete",
+     "seconds": 21.98
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 1
+   },
+   "missed": "The pipeline should have asked for intermediate-year figures or the growth rate, to show how the change happened over the period rather than only its two endpoints, and should have passed on the service's single-source caveat.",
+   "notes": "Every figure in the answer matches the reply, and the answer attributes them to Google Data Commons. However, it claims high confidence with no stated gaps, despite the service warning that other sources may report different numbers. The decomposition only restates the question, so the answer lacks any trend detail.",
+   "seconds": 37.4,
+   "cost": 0.0426,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:22 UTC"
+  },
+  {
+   "level": "1",
+   "question": "Is the unemployment rate in Texas higher than in California?",
+   "answer": "Neural DB could not answer any of the questions needed, so there is nothing to base an answer on.",
+   "confidence": "low",
+   "gaps": [
+    "q1: Is the latest unemployment rate in Texas higher than in California?"
+   ],
+   "unverified": [],
+   "approach": "The original question is a direct comparison that can be answered with a single query checking the latest unemployment rates for both states.",
+   "subs": [
+    {
+     "q": "Is the latest unemployment rate in Texas higher than in California?",
+     "status": "unanswered",
+     "seconds": 21.58
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 1
+   },
+   "missed": "The pipeline should have asked separately for each state's latest unemployment rate and reference month, then retried after the provider failure, instead of sending one comparative query.",
+   "notes": "The answer states plainly that no data was available and makes no unsupported claims, so it is honest and grounded. The single sub-question just restates the comparison rather than fetching each state's rate separately.",
+   "seconds": 86.5,
+   "cost": 0.0261,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:23 UTC"
+  },
+  {
+   "level": "1",
+   "question": "What is the population of Texas?",
+   "answer": "The population of Texas was 29,145,505 in 2020 [q1]. Because this figure is more than two years old, it is old and the current population is probably different. This figure is based on calendar year 2020 data from Google Data Commons [q1].",
+   "confidence": "low",
+   "gaps": [
+    "Recent population data for Texas is missing, which is needed to provide the current population."
+   ],
+   "unverified": [],
+   "approach": "The original question asks for a single data point, which can be answered directly by querying the latest population of Texas.",
+   "subs": [
+    {
+     "q": "What is the latest population of Texas?",
+     "status": "complete",
+     "seconds": 18.4
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 1
+   },
+   "missed": "The pipeline could have followed up by explicitly asking for the most recent annual Census Bureau population estimate (e.g., 2024 or 2025), since the 'latest' reply returned only the 2020 figure.",
+   "notes": "The answer gives the 2020 figure exactly as the service reported it and correctly warns that it is outdated. It omits the service's caveat that other sources may report different numbers, but that is minor.",
+   "seconds": 34.9,
+   "cost": 0.0381,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:20 UTC"
+  },
+  {
+   "level": "1",
+   "question": "What is the unemployment rate in Germany?",
+   "answer": "The unemployment rate in Germany was 3.37 percent in 2024 [q1]. This figure is based on data from Google Data Commons for the 2024 calendar year [q1]. Because this figure is more than two years old, it is considered old and the current unemployment rate is probably different.",
+   "confidence": "low",
+   "gaps": [],
+   "unverified": [],
+   "approach": "The original question is a direct request for a single metric for a specific country, which Neural DB can answer directly. I will ask for the latest available data.",
+   "subs": [
+    {
+     "q": "What is the latest unemployment rate in Germany?",
+     "status": "complete",
+     "seconds": 22.42
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 1,
+    "honest": 1,
+    "decomposition": 1
+   },
+   "missed": "The pipeline should have asked for a more recent monthly or quarterly figure and for the measure's definition, since Germany's national registered rate (~6%) differs sharply from the ILO-style 3.37%.",
+   "notes": "The answer correctly reports the 3.37% figure for 2024, but it wrongly calls the data 'more than two years old' when the period ended about 21 months before today. It also leaves out the service's caveat that other sources report different numbers, which matters here because Germany's headline national rate is much higher than this figure.",
+   "seconds": 39.1,
+   "cost": 0.0421,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:21 UTC"
+  },
+  {
+   "level": "1",
+   "question": "What was Apple's total revenue in the latest year?",
+   "answer": "Apple's total revenue in the latest available fiscal year (2025) was 416,161,000,000 USD [q1]. This figure covers the fiscal period from September 29, 2024, to September 27, 2025, based on the latest filed restatement of annual SEC facts [q1].",
+   "confidence": "high",
+   "gaps": [],
+   "unverified": [],
+   "approach": "The original question is a direct request for a specific financial value that Neural DB can answer in a single query.",
+   "subs": [
+    {
+     "q": "What was Apple's total revenue in the latest year?",
+     "status": "complete",
+     "seconds": 10.0
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 2
+   },
+   "missed": "",
+   "notes": "The answer directly reports the revenue figure, fiscal period and basis given in the reply, and it adds no invented claims. High confidence is justified for a single clean annual SEC fact.",
+   "seconds": 24.3,
+   "cost": 0.0298,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:20 UTC"
+  },
+  {
+   "level": "1",
+   "question": "Which 5 countries have the highest life expectancy?",
+   "answer": "The five countries with the highest life expectancy are Japan, Switzerland, Spain, South Korea, and Italy [q1]. According to Data Commons using the newest observations for each place between 2019 and 2024, Japan leads with 84.72 years [q1]. It is followed by Switzerland at 84.3 years, Spain at 83.77 years, South Korea at 83.5 years, and Italy at 83.4 years [q1]. Because these figures are from 2019\u20132024, they are old, and the current values are probably different [q1].",
+   "confidence": "low",
+   "gaps": [
+    "Recent life expectancy data from 2025 or 2026 is missing, which is needed to confirm the current rankings."
+   ],
+   "unverified": [],
+   "approach": "The original question is a direct ranking query that Neural DB can answer in a single request.",
+   "subs": [
+    {
+     "q": "Which 5 countries have the highest life expectancy for the latest available year?",
+     "status": "complete",
+     "seconds": 4.38
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 2
+   },
+   "missed": "The answer should have said that each country's figure comes from a different year between 2019 and 2024, so the ranking is not a like-for-like comparison, and that places often near the top of such lists, such as Hong Kong, Macao, Monaco or Singapore, may be left out by the 'countries' definition.",
+   "notes": "Every figure matches the reply and the answer is on point. Calling 2019\u20132024 data 'old' with low confidence overstates staleness, since a lag of that kind is normal. Meanwhile the real limitation, that the figures come from mixed years, is glossed over.",
+   "seconds": 25.3,
+   "cost": 0.0474,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:21 UTC"
+  },
+  {
+   "level": "2",
+   "question": "How do Texas and California compare on population, median household income and unemployment?",
+   "answer": "California has a higher median household income and historically had a higher unemployment rate than Texas, though population data is currently unavailable to compare their sizes. In 2024, California's median household income was $99,122, which is $20,646 (26%) higher than Texas's $78,476, according to Google Data Commons [q2]. For unemployment, multi-year estimates from 2018-2022 show California's rate was 6.4% compared to Texas's 5.2% [q3]. Because this unemployment data is from 2022, it is old and the current values are probably different [q3].",
+   "confidence": "low",
+   "gaps": [
+    "Population data for both states is missing because the provider request failed, preventing a comparison of their sizes.",
+    "Recent unemployment data is missing, as the provided figures are from 2022 and may not reflect the current economic situation."
+   ],
+   "unverified": [],
+   "approach": "To compare Texas and California across these dimensions, we will query the latest data for population, median household income, and unemployment rate for both states.",
+   "subs": [
+    {
+     "q": "Compare the latest population of Texas and California.",
+     "status": "unanswered",
+     "seconds": 22.48
+    },
+    {
+     "q": "Compare the latest median household income in Texas and California.",
+     "status": "complete",
+     "seconds": 24.66
+    },
+    {
+     "q": "Compare the latest unemployment rate in Texas and California.",
+     "status": "partial",
+     "seconds": 84.09
+    }
+   ],
+   "scores": {
+    "addresses": 1,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 2
+   },
+   "missed": "The pipeline should have retried the failed population lookup (or used another source) and looked for a more recent single-year unemployment rate, such as BLS LAUS, instead of settling for an ACS 2018\u20132022 five-year estimate.",
+   "notes": "Income and unemployment figures match the replies, and the answer states plainly that population is unavailable, so it covers only two of the three measures. It does not mention the service's warning that 'unemployment rate' has three distinct meanings, and 'historically had a higher' rate stretches a single five-year estimate.",
+   "seconds": 128.1,
+   "cost": 0.0737,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:25 UTC"
+  },
+  {
+   "level": "2",
+   "question": "How do life expectancy and infant mortality compare between Japan and Nigeria?",
+   "answer": "Japan has a significantly higher life expectancy and a much lower infant mortality rate compared to Nigeria, though some data is old and current values are probably different. According to World Bank and Google Data Commons data, Japan's life expectancy at birth in 2024 was 84.04 years, whereas Nigeria's was 54.63 years [q1]. Breaking this down by gender for 2023, Japan's life expectancy was 81.09 years for males and 87.14 years for females, compared to Nigeria's 54.18 years for males and 54.74 years for females [q1]. For infant mortality, Google Data Commons reports that in 2022, Nigeria's rate was 68.5 per 1,000 live births, which is 66.8 higher (or 3,929% higher) than Japan's rate of 1.7 per 1,000 live births [q2]. Because the infant mortality figures are from 2022, they are more than two years old; the current values are probably different [q2]. These figures suggest a stark contrast in overall health outcomes, with Japan experiencing vastly superior early-life survival and overall longevity [q1, q2].",
+   "confidence": "medium",
+   "gaps": [],
+   "unverified": [],
+   "approach": "To compare the health outcomes between Japan and Nigeria, we will retrieve the latest data for both life expectancy and infant mortality rates for each country.",
+   "subs": [
+    {
+     "q": "Compare the latest life expectancy at birth in Japan and Nigeria.",
+     "status": "complete",
+     "seconds": 54.65
+    },
+    {
+     "q": "Compare the latest infant mortality rate in Japan and Nigeria.",
+     "status": "complete",
+     "seconds": 28.2
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 2
+   },
+   "missed": "",
+   "notes": "Every figure (life expectancy totals and by sex, the 1.7 vs 68.5 infant mortality rates, and the gap) matches the replies, and the answer correctly flags that the 2022 infant mortality data is older. The two sub-questions map directly onto the two parts of the question.",
+   "seconds": 86.2,
+   "cost": 0.0727,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:27 UTC"
+  },
+  {
+   "level": "2",
+   "question": "How does Japan's population compare with Brazil's, and which has the higher GDP per capita?",
+   "answer": "Brazil has a significantly larger population than Japan, while Japan has a much higher GDP per capita. In 2024, Brazil's population was 211,998,573, which was 88,023,202 (71%) higher than Japan's population of 123,975,371, according to Google Data Commons [q1]. Conversely, Japan's GDP per capita in 2025 was 35,951.04 current US$, compared to Brazil's 10,713.29 current US$ (World Bank World Development Indicators) [q2]. This suggests that while Brazil is much more populous, Japan's economy produces substantially more value per resident.",
+   "confidence": "high",
+   "gaps": [],
+   "unverified": [],
+   "approach": "I will ask for a direct comparison of the latest population and GDP per capita between Japan and Brazil to fully answer both parts of the prompt.",
+   "subs": [
+    {
+     "q": "Compare the latest population of Japan and Brazil.",
+     "status": "complete",
+     "seconds": 34.75
+    },
+    {
+     "q": "Compare the latest GDP per capita of Japan and Brazil.",
+     "status": "complete",
+     "seconds": 24.77
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 2
+   },
+   "missed": "The answer could have said that Japan leads on every GDP-per-capita measure returned, including PPP, where the gap narrows to about 2.3x versus about 3.4x nominal.",
+   "notes": "Every figure matches the replies. The conclusion holds across all four GDP-per-capita measures, so high confidence is justified. The answer cites only the nominal 2025 figure and does not mention the measure variants or that the data sources can differ.",
+   "seconds": 57.6,
+   "cost": 0.0638,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:23 UTC"
+  },
+  {
+   "level": "2",
+   "question": "Is Germany's economy bigger than France's, and is it growing faster?",
+   "answer": "Germany's economy is larger than France's, but France's economy is growing faster based on available data. According to the World Bank World Development Indicators via Google Data Commons, Germany's gross domestic product in 2025 was 5,050,922,925,047.05 current US$, which is larger than France's 3,366,315,927,447.33 current US$ [q1]. This size difference is consistent across 2024 metrics, including GDP in constant 2010 US$ (Germany: 3,677,048,776,153.86; France: 2,720,362,347,819.81) and GDP PPP in current international dollars (Germany: 6,142,807,000,522.21; France: 4,288,380,142,651.84) [q1]. Regarding growth, France outperformed Germany in the provided years. In 2025, France's gross domestic product growth rate was 0.8409, compared to Germany's 0.2396 [q2]. In 2024, France's annual GDP growth was 1.19%, while Germany's was -0.4959% [q2]. In 2022, France's annual GDP growth was 2.45% and Germany's was 1.81% [q2]; because this 2022 data is more than two years old, it is old and the current value is probably different. This suggests that although Germany maintains a larger overall economy, France has maintained a faster rate of growth in recent years.",
+   "confidence": "low",
+   "gaps": [
+    "The GDP size comparison is based on a partial reply that is missing some dates or places.",
+    "The growth rate data is partial and does not provide a complete continuous 5-year history, which is necessary to fully assess the multi-year growth trend."
+   ],
+   "unverified": [],
+   "approach": "To determine which economy is larger and growing faster, we will compare the latest GDP figures for Germany and France, as well as their GDP growth rates over a recent multi-year period.",
+   "subs": [
+    {
+     "q": "Compare the Gross Domestic Product (GDP) of Germany and France in the latest available year.",
+     "status": "partial",
+     "seconds": 53.95
+    },
+    {
+     "q": "Compare the annual GDP growth rate of Germany and France over the last 5 years.",
+     "status": "partial",
+     "seconds": 54.26
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 1
+   },
+   "missed": "The growth sub-question should have named explicit years (e.g. 2021\u20132025), because the service could not place a relative 'last 5 years' and so returned only scattered years with 2023 missing.",
+   "notes": "Both parts are answered with figures taken from the replies, and gaps and low confidence are stated. However, 'France has maintained a faster rate of growth in recent years' generalizes from only three non-contiguous years from different series, and the 2025 growth figures are given without clear units.",
+   "seconds": 99.0,
+   "cost": 0.0981,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:24 UTC"
+  },
+  {
+   "level": "2",
+   "question": "What are the largest US states by population, and what is the median household income in the top three?",
+   "answer": "The largest US states by population in 2024 were California, Texas, and Florida [q1]. For these top three states, the median household incomes in 2022 were $91,905 for California, $73,035 for Texas, and $67,917 for Florida [q2]. According to 2024 Data Commons Census data, the top five states by total population were California (39,287,377), Texas (30,188,424), Florida (22,416,077), New York (19,852,366), and Pennsylvania (13,018,639) [q1]. The income figures are based on 2022 ACS 5-year estimates in 2022 inflation-adjusted dollars [q2]. Because the 2022 income data is old, the current values are probably different. Furthermore, the population figures are from 2024 while the income figures are from 2022; comparing figures from different years lowers the confidence of this answer.",
+   "confidence": "low",
+   "gaps": [],
+   "unverified": [],
+   "approach": "To answer the question without dependencies between queries, we first ask for the ranking of US states by population. Simultaneously, we ask for the median household income of every US state, ensuring we have the income data for whichever states turn out to be the top three.",
+   "subs": [
+    {
+     "q": "Which 5 US states have the highest total population in the latest available year?",
+     "status": "complete",
+     "seconds": 7.55
+    },
+    {
+     "q": "What is the median household income of each US state in the latest available year?",
+     "status": "complete",
+     "seconds": 6.64
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 0,
+    "honest": 0,
+    "decomposition": 1
+   },
+   "missed": "The income sub-question should have asked only for California, Texas and Florida, so the reply would not be cut off before Texas, and the answer should have said Texas's income was missing rather than supplying a figure.",
+   "notes": "The q2 reply stops at Rhode Island and never lists Texas, yet the answer states Texas's median household income as $73,035 and cites it to q2; that figure is invented. The answer does flag the 2022 vs 2024 year mismatch and gives low confidence, but it hides the missing Texas data.",
+   "seconds": 48.6,
+   "cost": 0.0766,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:26 UTC"
+  },
+  {
+   "level": "2",
+   "question": "Which has more people, Canada or Australia, and by how much?",
+   "answer": "Canada has more people than Australia, exceeding it by 14,037,242 people based on 2025 calendar year data [q2]. According to Google Data Commons, Canada's 2025 population was 41,651,653, compared to Australia's 27,614,411 [q2]. Earlier calendar year data from 2024, also from Google Data Commons, showed Canada at 41,288,599 and Australia at 27,196,812, which was a difference of 14,091,787 or 52% higher [q1]. This suggests that Canada consistently maintains a significantly larger population than Australia, though the exact numerical difference slightly decreased between 2024 and 2025 [q1, q2].",
+   "confidence": "high",
+   "gaps": [],
+   "unverified": [],
+   "approach": "Retrieve the latest population figures for both Canada and Australia to identify which is larger, and get the exact numerical difference between them.",
+   "subs": [
+    {
+     "q": "Compare the latest population of Canada and Australia.",
+     "status": "complete",
+     "seconds": 8.5
+    },
+    {
+     "q": "What is the difference in the latest population between Canada and Australia?",
+     "status": "complete",
+     "seconds": 26.78
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 1
+   },
+   "missed": "Use one sub-question for the latest population of both countries, and flag that two 'latest' queries returned different years along with the service's warning that other sources may report different figures.",
+   "notes": "The answer correctly says Canada is larger by about 14.04 million (2025), and every figure traces to a reply. It does not explain why the two 'latest' queries returned different years. It also omits the service's caveat about other sources. 'Consistently maintains' is a stretch from only two data points. The two sub-questions are largely redundant.",
+   "seconds": 50.3,
+   "cost": 0.0628,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 03:25 UTC"
+  },
+  {
+   "level": "3",
+   "question": "Are richer countries also healthier? Show with examples.",
+   "answer": "Yes, richer countries generally tend to be healthier, though specific country examples are currently unavailable. In 2022, across 207 countries, there was a strong positive correlation between GDP per capita (current US$, World Bank) and life expectancy at birth (Data Commons), with a Pearson r of 0.57 and a Spearman rho of 0.85 [q1]. When measured using GDP per capita in purchasing power parity (current international $), this correlation was even stronger, showing a Pearson r of 0.67 and a Spearman rho of 0.86 across 199 members [q1]. Additionally, in 2022 across 189 countries, GDP per capita (current US$) had a moderate negative correlation with the infant mortality rate (Pearson r = -0.41, Spearman rho = -0.85) [q2]. This suggests that higher national wealth is strongly associated with longer lifespans and lower infant mortality [q1, q2]. Please note that these figures are from 2022, which is more than two years old, so current correlations and values are probably different [q1, q2].",
+   "confidence": "low",
+   "gaps": [
+    "Specific GDP per capita figures for Switzerland, Norway, the United States, Burundi, the Central African Republic, and Niger are missing due to a system error, preventing the use of concrete wealth examples.",
+    "Specific life expectancy figures for the requested sample countries are missing due to a system error, preventing the use of concrete health examples."
+   ],
+   "unverified": [],
+   "approach": "To determine if richer countries are healthier, we can check the global correlation between wealth (GDP per capita) and standard health metrics (life expectancy and infant mortality). We also pull specific metrics for a sample of historically high-income and low-income countries to provide concrete examples.",
+   "subs": [
+    {
+     "q": "Is GDP per capita correlated with life expectancy at birth across all countries for the latest available year?",
+     "status": "complete",
+     "seconds": 52.77
+    },
+    {
+     "q": "Is GDP per capita correlated with the infant mortality rate across all countries for the latest available year?",
+     "status": "complete",
+     "seconds": 60.09
+    },
+    {
+     "q": "Compare the latest GDP per capita of Switzerland, Norway, the United States, Burundi, the Central African Republic, and Niger.",
+     "status": "error",
+     "seconds": null
+    },
+    {
+     "q": "Compare the latest life expectancy at birth in Switzerland, Norway, the United States, Burundi, the Central African Republic, and Niger.",
+     "status": "error",
+     "seconds": null
+    }
+   ],
+   "scores": {
+    "addresses": 1,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 2
+   },
+   "missed": "The pipeline should have retried the two timed-out example lookups, or asked for the countries with the highest and lowest GDP per capita together with their life expectancy, so the 'show with examples' part could be answered.",
+   "notes": "The cross-country correlations are reported faithfully, and the answer says plainly that the examples are missing, but the user explicitly asked for examples and none were given. The claim that current correlations are 'probably different' is speculation that no reply supports, and the answer never explains why Pearson (0.57) is so much lower than Spearman (0.85), which signals a strongly nonlinear relationship.",
+   "seconds": 179.7,
+   "cost": 0.0801,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:10 UTC"
+  },
+  {
+   "level": "3",
+   "question": "How has the US unemployment rate changed since 2000, and how does it compare with Germany's?",
+   "answer": "Since 2000, the US unemployment rate has seen a slight overall change, while Germany's rate has decreased significantly, leaving the US with a higher rate in the latest available data. According to Google Data Commons, the US unemployment rate was 3.99% in 2000 and 3.64% in 2023, a difference of -0.35% [q1]. By 2024, the US rate was recorded at 4.02% [q3]. In contrast, Germany's unemployment rate, also per Google Data Commons, fell from 7.92% in 2000 to 3.37% in 2024, a difference of -4.545% [q2]. Comparing the two countries in 2024, the US rate of 4.02% was 0.65% (or 19%) higher than Germany's 3.37% [q3]. Because these figures from 2023 and 2024 are old relative to today (2026), the current values are probably different.",
+   "confidence": "low",
+   "gaps": [],
+   "unverified": [
+    "2026"
+   ],
+   "approach": "To answer this, we will retrieve the historical trend of the unemployment rate for the United States since 2000, do the same for Germany, and get a direct comparison of their latest unemployment rates.",
+   "subs": [
+    {
+     "q": "How has the unemployment rate in the United States changed since 2000?",
+     "status": "complete",
+     "seconds": 67.92
+    },
+    {
+     "q": "How has the unemployment rate in Germany changed since 2000?",
+     "status": "complete",
+     "seconds": 31.54
+    },
+    {
+     "q": "Compare the latest unemployment rate in the United States and Germany.",
+     "status": "complete",
+     "seconds": 35.01
+    }
+   ],
+   "scores": {
+    "addresses": 1,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 1
+   },
+   "missed": "The pipeline should have asked for the full annual series since 2000 (or at least peaks such as 2009\u20132010 and 2020) so the answer could describe the trajectory rather than only the two endpoints.",
+   "notes": "All figures match the replies. However, the answer presents an endpoint-only comparison as 'how it changed', which hides the large swings in between, and it does not mention that the US 2023 value (SDG_PERCENT) and the 2024 value (Percent) appear to come from different series. Its note on staleness and its low stated confidence are appropriate.",
+   "seconds": 109.5,
+   "cost": 0.0916,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:09 UTC"
+  },
+  {
+   "level": "3",
+   "question": "How healthy is the population of Brazil compared with Argentina?",
+   "answer": "Based on available public health metrics, Argentina generally exhibits better population health outcomes than Brazil, though all figures are more than two years old and current values are probably different. According to Google Data Commons, life expectancy at birth in 2023 was higher in Argentina at 77.39 years compared to 75.85 years in Brazil [q1]. Infant mortality in 2023 (Google Data Commons) was lower in Argentina (8.2) than in Brazil (12.5) [q2]. Furthermore, maternal mortality ratios from 2020 (Google Data Commons) were lower in Argentina (44.9 per 100,000 live births) than in Brazil (72.15 per 100,000 live births) [q3]. Conversely, the mortality rate attributed to non-communicable diseases in 2019 (Google Data Commons) was slightly higher in Argentina (435.17) than in Brazil (424.49) [q4]. Supporting its generally better outcomes, Argentina's current health expenditure per capita in 2023 (World Bank World Development Indicators) was 1,456.99 current US$, compared to Brazil's 1,009.84 current US$ [q5]. This suggests that while Argentina invests more per capita in health and achieves better maternal, infant, and overall life expectancy outcomes, it faces a slightly higher mortality burden from non-communicable diseases. Finally, a definitive qualitative judgment on how healthy a population is overall, including subjective well-being and mental health nuances, cannot be entirely settled by statistical metrics.",
+   "confidence": "low",
+   "gaps": [
+    "Recent data from the last two years is missing for all metrics, which is necessary to accurately assess the present health of the populations."
+   ],
+   "unverified": [],
+   "approach": "To assess and compare the health of the populations in Brazil and Argentina, we can examine standard public health indicators such as life expectancy, infant and maternal mortality rates, mortality from non-communicable diseases, and healthcare expenditure.",
+   "subs": [
+    {
+     "q": "Compare the latest life expectancy at birth in Brazil and Argentina.",
+     "status": "complete",
+     "seconds": 23.25
+    },
+    {
+     "q": "Compare the latest infant mortality rate in Brazil and Argentina.",
+     "status": "complete",
+     "seconds": 19.16
+    },
+    {
+     "q": "Compare the latest maternal mortality ratio in Brazil and Argentina.",
+     "status": "complete",
+     "seconds": 18.48
+    },
+    {
+     "q": "Compare the latest mortality rate attributed to non-communicable diseases in Brazil and Argentina.",
+     "status": "complete",
+     "seconds": 31.47
+    },
+    {
+     "q": "Compare the latest current health expenditure per capita in Brazil and Argentina.",
+     "status": "complete",
+     "seconds": 24.67
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 2
+   },
+   "missed": "The answer should have explained what the unitless NCD mortality figure measures (e.g., age-standardized rate or probability) and noted that the 2020 maternal mortality figures fall in a COVID-affected year, rather than only flagging staleness.",
+   "notes": "Every figure matches the replies and the answer directly compares the two countries across sensible outcome indicators. However, 'low' confidence and 'current values are probably different' overstate the problem of data from 2019\u20132023, while the more important limits go unstated: the NCD unit is unclear and the 2020 maternal data is COVID-affected.",
+   "seconds": 120.6,
+   "cost": 0.1226,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:07 UTC"
+  },
+  {
+   "level": "3",
+   "question": "Is India's economy catching up with China's?",
+   "answer": "The available data is insufficient to determine if India's economy is catching up to China's, as historical trends and growth rates are missing. However, as of 2024, China's economy remains substantially larger than India's. According to Google Data Commons, China's total GDP in 2024 was 18,743,803,170,827.2 current USD (18,488,114,837,769.3 constant 2010 USD) [q1]. In the same year, India's total GDP was 3,909,891,533,858.08 current USD (3,477,820,532,826.48 constant 2010 USD) [q1]. This suggests that China's economic size was still nearly five times that of India's in 2024. Furthermore, predicting whether India will eventually overtake China in the future, or assessing qualitative factors like technological leadership, institutional quality, and geopolitical influence, cannot be answered with historical data alone.",
+   "confidence": "low",
+   "gaps": [
+    "Historical GDP data over the last 20 years is missing, which is necessary to evaluate long-term catch-up trends.",
+    "Annual GDP growth rates for both countries over the last 10 years are missing, preventing a comparison of their economic momentum.",
+    "The historical ratio of China's GDP to India's GDP is missing, as the data only provided mismatched metrics for China in 2005 and 2025.",
+    "GDP per capita data for both countries over the last 20 years is missing due to a system error, which is needed to compare individual income levels."
+   ],
+   "unverified": [],
+   "approach": "To determine if India's economy is catching up to China's, we need to compare their total economic size, per capita income, and economic growth rates over time to see if the gap between them is narrowing.",
+   "subs": [
+    {
+     "q": "Compare the total GDP of India and China over the last 20 years.",
+     "status": "partial",
+     "seconds": 60.3
+    },
+    {
+     "q": "Compare the annual GDP growth rate of India and China over the last 10 years.",
+     "status": "unanswered",
+     "seconds": 61.88
+    },
+    {
+     "q": "How has the ratio of China's total GDP to India's total GDP changed over the last 20 years?",
+     "status": "partial",
+     "seconds": 55.44
+    },
+    {
+     "q": "Compare the GDP per capita of India and China over the last 20 years.",
+     "status": "error",
+     "seconds": null
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 1
+   },
+   "missed": "The sub-questions should have named explicit years (for example 2005 and 2024 GDP, and growth rates for 2015\u20132024), because the service repeatedly failed to resolve relative ranges like 'last 20 years'; asking the service to compute a ratio itself (q3) also produced mislabelled, mismatched output.",
+   "notes": "The answer says plainly that the catch-up trend cannot be determined, and it correctly uses only the 2024 snapshot. Its 'nearly five times' figure follows from the q1 values (about 4.8\u00d7), and it rightly ignores the mislabelled q3 figures. Low confidence and the listed gaps match the evidence.",
+   "seconds": 187.4,
+   "cost": 0.1131,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:04 UTC"
+  },
+  {
+   "level": "3",
+   "question": "Is Japan's population aging faster than the United States'?",
+   "answer": "Neural DB could not answer any of the questions needed, so there is nothing to base an answer on.",
+   "confidence": "low",
+   "gaps": [
+    "q1: How has the median age in Japan and the United States changed over the last 20 years?",
+    "q2: How has the percentage of the population aged 65 and older changed in Japan and the United States over the last 20 years?",
+    "q3: Did the median age increase more in Japan than in the United States over the last 20 years?"
+   ],
+   "unverified": [],
+   "approach": "To determine if Japan's population is aging faster, we will compare the trends in median age and the share of the population aged 65 and older for both countries over the last 20 years.",
+   "subs": [
+    {
+     "q": "How has the median age in Japan and the United States changed over the last 20 years?",
+     "status": "error",
+     "seconds": null
+    },
+    {
+     "q": "How has the percentage of the population aged 65 and older changed in Japan and the United States over the last 20 years?",
+     "status": "error",
+     "seconds": null
+    },
+    {
+     "q": "Did the median age increase more in Japan than in the United States over the last 20 years?",
+     "status": "error",
+     "seconds": null
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 1
+   },
+   "missed": "Replace the redundant q3, which duplicates q1, with a different aging measure such as the old-age dependency ratio or the rate of change in the 65+ share, and retry the sub-questions after the Neural DB timeouts.",
+   "notes": "Every sub-question timed out, and the answer says plainly that it cannot answer, with no invented figures and low confidence. q3 is a narrower restatement of q1, so the decomposition adds little coverage.",
+   "seconds": 165.5,
+   "cost": 0.0279,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:07 UTC"
+  },
+  {
+   "level": "3",
+   "question": "Which is more affordable to live in, Ohio or Massachusetts?",
+   "answer": "Based on available data, Ohio is generally more affordable to live in than Massachusetts, as housing costs are significantly lower despite lower median incomes. In 2024 (Google Data Commons), the median home value in Ohio was $214,800, while in Massachusetts it was $562,100, making Massachusetts 162% higher [q2]. Median gross rent data from a 2022 ACS 5-year estimate shows Ohio at $945 and Massachusetts at $1,588 (68% higher) [q3]; however, this rent data is old and current values are probably different. To offset these costs, the median household income in 2024 (Google Data Commons) was $71,389 in Ohio and $103,960 in Massachusetts, meaning incomes were 46% higher in Massachusetts [q4]. This suggests that while Massachusetts residents earn more, their housing costs are disproportionately higher than those in Ohio, though comparing 2022 rent data with 2024 income and home values limits the precision of this comparison [q2, q3, q4]. Furthermore, aggregate state-level figures cannot settle this completely; whether a state is 'more affordable' ultimately depends on an individual's specific profession, salary, lifestyle, and the exact city or neighborhood they choose to live in.",
+   "confidence": "low",
+   "gaps": [
+    "The regional price parity (cost of living index) is missing, which is necessary to compare non-housing expenses between the two states."
+   ],
+   "unverified": [],
+   "approach": "To evaluate affordability, these questions compare the overall cost of living, housing costs (both renting and buying), and typical household incomes between the two states to provide a comprehensive view of expenses versus earnings.",
+   "subs": [
+    {
+     "q": "Compare the regional price parity (cost of living index) in Ohio and Massachusetts for the latest available year.",
+     "status": "error",
+     "seconds": null
+    },
+    {
+     "q": "Compare the median home value in Ohio and Massachusetts for the latest available year.",
+     "status": "complete",
+     "seconds": 19.55
+    },
+    {
+     "q": "Compare the median gross rent in Ohio and Massachusetts for the latest available year.",
+     "status": "complete",
+     "seconds": 27.05
+    },
+    {
+     "q": "Compare the median household income in Ohio and Massachusetts for the latest available year.",
+     "status": "complete",
+     "seconds": 9.88
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 2
+   },
+   "missed": "The pipeline should have retried the timed-out regional price parity query or used an alternative overall cost-of-living measure, so the comparison covered non-housing costs too.",
+   "notes": "Every figure in the answer traces to the replies, and it notes the mismatch between 2022 rent data and 2024 income and home-value data. The missing price-parity index appears in stated_gaps but not in the answer text itself; the conclusion that Ohio is more affordable is still well supported by the housing-to-income comparison.",
+   "seconds": 181.2,
+   "cost": 0.081,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:04 UTC"
+  },
+  {
+   "level": "4",
+   "question": "Is the United States becoming more or less unequal compared with other rich countries?",
+   "answer": "The available data is insufficient to fully determine if the United States is becoming more or less unequal compared to its peers over the last 20 years, though recent figures show the US is currently more unequal. In the US, the Gini index for income inequality rose from 40.5 in 2004 to 41.8 in 2024, a 3.2% increase [q1]. When asked for the 20-year change in peer countries, the data only provided single-year figures labeled as 'change' (Google Data Commons): 32.4% for the UK (2021), 32.4% for Germany (2020), 31.8% for France (2023), 31.1% for Canada (2021), and 32.3% for Japan (2020) [q2]. Comparing the latest available Gini indices (Google Data Commons), the US at 41.8% (2023) is substantially higher than France at 31.8% (2023), as well as the UK (32.4%, 2021), Germany (32.4%, 2020), Canada (31.1%, 2021), and Japan (32.3%, 2020) [q5]. This suggests that income inequality is more pronounced in the US than in these other rich nations. However, because the figures for the UK, Germany, Canada, and Japan are from 2020 and 2021\u2014more than two years old compared to today (2026)\u2014their current values are probably different, and comparing these older figures from different years to the 2023 US figure lowers confidence in the exact current gap [q5].",
+   "confidence": "low",
+   "gaps": [
+    "The 20-year historical Gini index data for the UK, Germany, France, Canada, and Japan is missing, making it impossible to compare their long-term inequality trends against the US.",
+    "Data on the share of total income held by the top 1% in the United States over the last 20 years is missing, which is necessary to evaluate wealth concentration at the top.",
+    "Data on the share of total income held by the top 1% in the peer countries over the last 20 years is missing, preventing a full comparison of top-end inequality trends."
+   ],
+   "unverified": [
+    "2026"
+   ],
+   "approach": "To determine if the US is becoming more or less unequal relative to its peers, we compare the 20-year trends in standard inequality metrics (Gini index and top 1% income share) for the US against a representative group of other wealthy nations (UK, Germany, France, Canada, Japan).",
+   "subs": [
+    {
+     "q": "How has the Gini index for income inequality in the United States changed over the last 20 years?",
+     "status": "complete",
+     "seconds": 86.65
+    },
+    {
+     "q": "How has the Gini index for income inequality in the United Kingdom, Germany, France, Canada, and Japan changed over the last 20 years?",
+     "status": "complete",
+     "seconds": 63.46
+    },
+    {
+     "q": "How has the share of total income held by the top 1% in the United States changed over the last 20 years?",
+     "status": "unanswered",
+     "seconds": 56.19
+    },
+    {
+     "q": "How has the share of total income held by the top 1% in the United Kingdom, Germany, France, Canada, and Japan changed over the last 20 years?",
+     "status": "unanswered",
+     "seconds": 59.84
+    },
+    {
+     "q": "Compare the latest Gini index of the United States, United Kingdom, Germany, France, Canada, and Japan.",
+     "status": "complete",
+     "seconds": 26.57
+    }
+   ],
+   "scores": {
+    "addresses": 1,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 1
+   },
+   "missed": "A better pipeline would have asked for each peer country's Gini value around 2004, or for its full time series, so the US trend could be compared with theirs instead of only with single recent levels.",
+   "notes": "The answer correctly reports the US level and its small rise, and it says plainly that the peer 'change' figures are really single-year levels, so the relative-trend question stays unanswered. All figures match the replies, and the stated low confidence fits the evidence; the answer might have added that the US rise of +1.3 points is small next to the year-to-year swings.",
+   "seconds": 167.5,
+   "cost": 0.1516,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:16 UTC"
+  },
+  {
+   "level": "4",
+   "question": "What are the key economic indicators for India's growth?",
+   "answer": "Over the last decade, India's economic growth indicators show significant increases in GDP per capita and total exports, alongside decreasing unemployment and inflation, though annual GDP growth and Foreign Direct Investment (FDI) net inflows have declined. However, determining which of these indicators are the absolute key drivers of India's specific economic model requires subjective economic analysis and interpretation that figures alone cannot settle.\n\nAnnual GDP growth was 7.41% in 2014 and 6.49% in 2024, a decrease of 0.9155 percentage points [q1]. Despite this, GDP per capita (current US$, sourced from World Bank/Google Data Commons) rose from $1,553.88 in 2014 to $2,694.74 in 2024, reaching $2,702.48 in 2025 [q2]. Measured in Purchasing Power Parity (current international $), GDP per capita grew from $5,191.59 in 2014 to $11,159.99 in 2024 [q2]. Total exports of goods and services (Google Data Commons) also increased substantially from $468,345,815,420.93 in 2014 to $827,405,227,198.60 in 2024 [q6]. This suggests strong expansion in individual economic output and international trade.\n\nConversely, FDI net inflows decreased from $34,576,643,694.14 in 2014 to $27,139,853,378.14 in 2024, a 21.5% drop [q5]. Meanwhile, the annual inflation rate dropped from 4.91% in 2015 to 2.4% in 2025 [q3], and the unemployment rate fell from 7.63% in 2015 to 4.22% in 2025 [q4]. This suggests a stabilizing domestic macroeconomic environment, even as foreign direct investment cooled. Note that comparing these indicators involves different timeframes (2014\u20132024 for GDP, FDI, and exports versus 2015\u20132025 for inflation and unemployment), which lowers the overall confidence of the comparison.",
+   "confidence": "medium",
+   "gaps": [],
+   "unverified": [],
+   "approach": "To assess India's economic growth, we can examine the trends of standard macroeconomic indicators over the last decade, including GDP growth, GDP per capita, inflation, unemployment, foreign direct investment, and exports.",
+   "subs": [
+    {
+     "q": "What has been the annual GDP growth rate of India over the last 10 years?",
+     "status": "complete",
+     "seconds": 20.06
+    },
+    {
+     "q": "How has the GDP per capita of India changed over the last 10 years?",
+     "status": "complete",
+     "seconds": 48.67
+    },
+    {
+     "q": "What has been the inflation rate in India over the last 10 years?",
+     "status": "complete",
+     "seconds": 30.58
+    },
+    {
+     "q": "What has been the unemployment rate in India over the last 10 years?",
+     "status": "complete",
+     "seconds": 18.11
+    },
+    {
+     "q": "What is the trend of Foreign Direct Investment (FDI) net inflows to India over the last 10 years?",
+     "status": "complete",
+     "seconds": 14.83
+    },
+    {
+     "q": "How have India's total exports of goods and services changed over the last 10 years?",
+     "status": "complete",
+     "seconds": 8.59
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 2
+   },
+   "missed": "The answer should have described the paths behind the 2014-vs-2024 endpoints, such as the 2020 contraction (-5.78%), the 9.19% growth in 2023 and the FDI peak of $64B in 2020 before it halved, rather than presenting simple endpoint 'declines'.",
+   "notes": "Every figure traces to a reply. The endpoint framing gives a misleading picture of growth and FDI. The answer also omits that inflation was published as two distinct quantities and that only one model's reading was used.",
+   "seconds": 106.3,
+   "cost": 0.1427,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:11 UTC"
+  },
+  {
+   "level": "4",
+   "question": "What does the data say about whether education spending improves outcomes across countries?",
+   "answer": "The data indicates only a weak positive correlation between education spending as a percentage of GDP and educational outcomes, and figures cannot definitively prove whether spending directly causes improvements since other factors like institutional efficiency and economic development play significant roles. Furthermore, the countries spending the highest percentage of their GDP on education do not overlap with those achieving the highest expected years of schooling. According to World Bank data via Data Commons, in 2019, government expenditure on education as a percentage of GDP and adult literacy rates across 48 countries had a weak positive correlation (Pearson r = 0.23, Spearman rho = 0.24) [q1]. Similarly, in 2020, education spending as a percentage of GDP and expected years of schooling across 151 countries also showed a weak positive correlation (Pearson r = 0.16, Spearman rho = 0.29) [q3]. Because these figures from 2019 and 2020 are old, current values are probably different. When identifying top performers, the 10 highest countries by government expenditure on education as a percentage of GDP (using each place's newest observation between 1989 and 2025) are Kiribati (16.391%), American Samoa (14.717%), Tuvalu (12.846%), Federated States of Micronesia (11.559%), Namibia (9.084%), Cuba (8.441%), Bolivia (8.316%), Solomon Islands (8.293%), Botswana (8.058%), and Marshall Islands (7.701%) [q4]. In contrast, the 10 countries with the highest expected years of schooling in 2020 were Sweden (13.936), Singapore (13.921), Portugal (13.901), Ireland (13.901), Netherlands (13.879), United Kingdom (13.858), Lithuania (13.833), Belarus (13.808), France (13.803), and Israel (13.763) [q5]. This suggests that the highest relative spenders are not necessarily achieving the highest educational outcomes, though comparing spending data spanning 1989\u20132025 with schooling data from 2020 involves different years and measures, which lowers confidence in the comparison [q4, q5].",
+   "confidence": "low",
+   "gaps": [
+    "Data on the correlation between government expenditure on education per capita and harmonized test scores is missing, which matters because per capita spending and standardized test scores could provide a clearer measure of educational quality than GDP percentages."
+   ],
+   "unverified": [],
+   "approach": "To assess the relationship between education spending and outcomes, we can look at correlations between spending metrics (like percentage of GDP or per capita) and outcome metrics (like literacy, test scores, and expected years of schooling) across countries, as well as identify the top performers in both categories.",
+   "subs": [
+    {
+     "q": "Is government expenditure on education as a percentage of GDP correlated with adult literacy rates across countries for the latest available year?",
+     "status": "complete",
+     "seconds": 17.72
+    },
+    {
+     "q": "Is government expenditure on education per capita correlated with harmonized test scores across countries for the latest available year?",
+     "status": "partial",
+     "seconds": 15.48
+    },
+    {
+     "q": "Is government expenditure on education as a percentage of GDP correlated with expected years of schooling across countries for the latest available year?",
+     "status": "complete",
+     "seconds": 23.36
+    },
+    {
+     "q": "Which 10 countries have the highest government expenditure on education as a percentage of GDP for the latest available year?",
+     "status": "complete",
+     "seconds": 13.69
+    },
+    {
+     "q": "Which 10 countries have the highest expected years of schooling for the latest available year?",
+     "status": "complete",
+     "seconds": 4.8
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 1,
+    "honest": 2,
+    "decomposition": 1
+   },
+   "missed": "The pipeline should have controlled for national income (for example GDP per capita or per-capita spending against outcomes within income groups), since that confounder drives most cross-country education comparisons, and it should have split q2 so a failure on test scores did not also lose the per-capita spending angle.",
+   "notes": "All figures match the replies, and the answer hedges properly on causation and on the mismatched top-10 years. The claim that institutional efficiency and economic development 'play significant roles' does not come from any reply, and the answer does not mention that the literacy correlation covers only 48 countries.",
+   "seconds": 89.2,
+   "cost": 0.134,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:16 UTC"
+  },
+  {
+   "level": "4",
+   "question": "What factors affect the export of soybeans from the US?",
+   "answer": "Neural DB could not answer any of the questions needed, so there is nothing to base an answer on.",
+   "confidence": "low",
+   "gaps": [
+    "q1: What is the trend of United States soybean export volume over the last 10 years?",
+    "q2: What is the trend of United States soybean production over the last 10 years?",
+    "q3: What is the trend of the global price of soybeans over the last 10 years?",
+    "q4: Compare the soybean export volume of the United States, Brazil, and Argentina over the last 10 years.",
+    "q5: What are the top 5 destination countries for United States soybean exports over the last 5 years?",
+    "q6: Is United States soybean export volume correlated with United States soybean production over the last 10 years?",
+    "q7: Is United States soybean export volume correlated with the global price of soybeans over the last 10 years?"
+   ],
+   "unverified": [],
+   "approach": "To understand the factors affecting US soybean exports, we can examine the trends of the exports themselves alongside potential quantitative drivers: domestic production, global prices, competitor export volumes (like Brazil and Argentina), and major destination markets. We can also check for direct statistical correlations between exports and these supply or price metrics.",
+   "subs": [
+    {
+     "q": "What is the trend of United States soybean export volume over the last 10 years?",
+     "status": "unanswered",
+     "seconds": 15.06
+    },
+    {
+     "q": "What is the trend of United States soybean production over the last 10 years?",
+     "status": "unanswered",
+     "seconds": 8.6
+    },
+    {
+     "q": "What is the trend of the global price of soybeans over the last 10 years?",
+     "status": "unanswered",
+     "seconds": 104.74
+    },
+    {
+     "q": "Compare the soybean export volume of the United States, Brazil, and Argentina over the last 10 years.",
+     "status": "unanswered",
+     "seconds": 110.96
+    },
+    {
+     "q": "What are the top 5 destination countries for United States soybean exports over the last 5 years?",
+     "status": "unanswered",
+     "seconds": 50.69
+    },
+    {
+     "q": "Is United States soybean export volume correlated with United States soybean production over the last 10 years?",
+     "status": "error",
+     "seconds": null
+    },
+    {
+     "q": "Is United States soybean export volume correlated with the global price of soybeans over the last 10 years?",
+     "status": "error",
+     "seconds": null
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 1
+   },
+   "missed": "The decomposition should have targeted known causal drivers such as China tariffs and trade policy, the dollar exchange rate, Mississippi River and shipping logistics, and Chinese import demand, rather than mostly trend and correlation queries, and should have asked simpler factual questions the source might hold.",
+   "notes": "The answer plainly states that nothing could be answered and makes no invented claims, which is appropriate given that every sub-question failed or timed out. The sub-questions cover volume, production, price and competitors, but they frame 'factors' too narrowly and miss policy and macro drivers.",
+   "seconds": 167.0,
+   "cost": 0.0781,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:13 UTC"
+  },
+  {
+   "level": "4",
+   "question": "Which US states are growing fastest, and is that tied to how affordable housing is there?",
+   "answer": "The available data does not provide information to determine which US states are growing the fastest or whether that growth is tied to housing affordability. Furthermore, even if correlation data were available, figures cannot settle whether people are moving specifically because of housing costs rather than other factors like jobs, weather, or taxes.",
+   "confidence": "low",
+   "gaps": [
+    "The ranking of the 10 fastest-growing US states over the last 5 years is missing, which is required to identify where population is increasing the most.",
+    "Correlation data between population growth and median home prices across US states is missing, preventing analysis of how home values relate to growth.",
+    "Correlation data between population growth and median rent across US states is missing, which is needed to evaluate the impact of rental affordability.",
+    "Correlation data between population growth and the ratio of median home price to median household income is missing, which is necessary to assess income-adjusted housing affordability."
+   ],
+   "unverified": [],
+   "approach": "First, identify the fastest-growing states using a ranking query. Then, use correlation queries to determine if population growth across all states statistically aligns with housing affordability metrics like median home prices, rent, and price-to-income ratios.",
+   "subs": [
+    {
+     "q": "Which 10 US states had the highest population growth rate over the last 5 years?",
+     "status": "unanswered",
+     "seconds": 17.53
+    },
+    {
+     "q": "Is population growth rate correlated with median home prices across US states over the last 5 years?",
+     "status": "partial",
+     "seconds": 43.14
+    },
+    {
+     "q": "Is population growth rate correlated with median rent across US states over the last 5 years?",
+     "status": "partial",
+     "seconds": 29.54
+    },
+    {
+     "q": "Is population growth rate correlated with the ratio of median home price to median household income across US states in the latest available year?",
+     "status": "unanswered",
+     "seconds": 15.33
+    }
+   ],
+   "scores": {
+    "addresses": 2,
+    "grounded": 2,
+    "honest": 2,
+    "decomposition": 1
+   },
+   "missed": "When the derived 'growth rate' and correlation queries failed, the pipeline could have asked for basic per-state figures (population in two specific years, median home value, median rent, median income), which a source like Data Commons is more likely to hold, and computed growth and correlations itself.",
+   "notes": "Every reply was empty, and the answer correctly says the question cannot be answered, with low confidence and accurate gaps. Its causation caveat is general reasoning rather than an invented figure. The sub-questions sensibly cover the parts of the question, but each depends on the service computing a derived quantity.",
+   "seconds": 79.2,
+   "cost": 0.1042,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:17 UTC"
+  },
+  {
+   "level": "4",
+   "question": "Why is housing so expensive in California compared with Texas?",
+   "answer": "Housing in California is significantly more expensive than in Texas, which is partially reflected by higher incomes and greater population density, though figures cannot settle qualitative or political reasons like zoning laws, environmental regulations, NIMBYism, or geographical constraints. According to Google Data Commons, the 2024 median home price in California was 734,700 USD, which is 159% (450,900 USD) higher than the 283,800 USD median in Texas [q1]. This suggests higher purchasing power and demand in California, where the 2024 median household income was 99,122 USD, 26% higher than Texas's 78,476 USD (Google Data Commons) [q4]. Furthermore, California has less available space per person; its population density was 97.04 persons per square kilometer compared to 45.32 in Texas (Google Data Commons) [q5]. This density figure is from 2023, which is old, so the current value is probably different [q5]. Comparing 2024 price and income data with 2023 density data lowers the confidence of this assessment.",
+   "confidence": "low",
+   "gaps": [
+    "The number of new housing building permits issued in California and Texas over the last 10 years is missing, which is needed to evaluate differences in housing supply.",
+    "The population growth of California and Texas over the last 10 years is missing, which is necessary to understand long-term demand trends."
+   ],
+   "unverified": [],
+   "approach": "To explore the cost difference, we can compare the baseline housing prices and then examine quantifiable supply and demand factors such as new building permits, population growth, median income, and population density.",
+   "subs": [
+    {
+     "q": "Compare the median home price in California and Texas for the latest available year.",
+     "status": "complete",
+     "seconds": 21.8
+    },
+    {
+     "q": "Compare the number of new housing building permits issued in California and Texas over the last 10 years.",
+     "status": "error",
+     "seconds": null
+    },
+    {
+     "q": "Compare the population growth of California and Texas over the last 10 years.",
+     "status": "error",
+     "seconds": null
+    },
+    {
+     "q": "Compare the median household income in California and Texas for the latest available year.",
+     "status": "complete",
+     "seconds": 10.4
+    },
+    {
+     "q": "Compare the population density of California and Texas for the latest available year.",
+     "status": "complete",
+     "seconds": 22.64
+    }
+   ],
+   "scores": {
+    "addresses": 1,
+    "grounded": 2,
+    "honest": 1,
+    "decomposition": 2
+   },
+   "missed": "The answer should have said plainly that a 26% income gap cannot account for a 159% price gap, which points to supply limits, and the pipeline should have retried the timed-out building-permit query to test that.",
+   "notes": "All figures match the replies. The answer frames income and density as partial explanations but does not flag how weak the income explanation is. It mentions the missing supply data only in the stated gaps, not in the answer text, and calling 2023 density 'old' overstates how much that figure changes.",
+   "seconds": 184.3,
+   "cost": 0.0914,
+   "model": "google/gemini-3.1-pro-preview",
+   "tested": "2026-10-10 12:14 UTC"
+  }
+ ]
+}
